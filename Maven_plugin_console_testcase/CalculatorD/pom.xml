@@ -4,4 +4,25 @@
   <artifactId>CalculatorD</artifactId>
   <version>0.0.1-SNAPSHOT</version>
    <packaging>jar</packaging>
+   <build>
+    <plugins>
+        <plugin>
+            <groupId>com.webonise.plugins</groupId>
+            <artifactId>test-maven-plugin</artifactId>
+            <version>1.0-SNAPSHOT</version>
+
+        <executions>
+	   
+	                <execution>
+	                    <id>touch-install</id>
+	                    <phase>install</phase>
+                    <goals>
+	                        <goal>touch</goal>
+                    </goals>
+               </execution>
+	            </executions>
+
+        </plugin>
+    </plugins>
+</build>
 </project>
