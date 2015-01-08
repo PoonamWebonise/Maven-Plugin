@@ -53,8 +53,11 @@ public class MyMojo
         {
             if (file1.isFile()) 
             {
-                
-            	getLog().info("it is a file"+file1);
+            	if(file1.getName().endsWith(".pom"))
+    			{
+    				getLog().info("pom file:"+file1);
+    			}
+            	//getLog().info("it is a file"+file1);
             } else if (file1.isDirectory())
             {
             	listf(file1);
@@ -90,11 +93,14 @@ public class MyMojo
 				getLog().info("directory:"+file1);
 				this.listf(file1);
 			} 
-			else 
+			//else if(file1.getName().endsWith(".pom"))
+			//{
+			//	getLog().info("pom file:"+file1);
+			//}
+			else
 			{
-				getLog().info("     file:"+file1);
+				
 			}
-        
 		}
      
     }
