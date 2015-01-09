@@ -8,6 +8,7 @@ import org.apache.maven.plugin.MojoFailureException;
 
 public class FindPom extends AbstractMojo {
 
+		//accepting .m2 path, opening the repository, storing all names of sub-folders in a file array
 	public void findRepository(String repository_path, String current_project_artifact) {
 
 		File repository_files_link = new File(repository_path);
@@ -27,6 +28,7 @@ public class FindPom extends AbstractMojo {
 
 	}
 
+		//scanning the sub-folders and finding .pom file
 	public void listf(File sub_directory, String current_project_artifact) {
 		File[] fList = sub_directory.listFiles();
 		for (File each_file : fList) {

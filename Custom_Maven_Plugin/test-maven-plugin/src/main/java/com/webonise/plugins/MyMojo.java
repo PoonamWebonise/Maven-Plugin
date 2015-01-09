@@ -38,7 +38,8 @@ public class MyMojo extends AbstractMojo {
 	MavenProject project;
 	/** @parameter default-value="${localRepository}" */
 	org.apache.maven.artifact.repository.ArtifactRepository localRepository;
-
+	//finding the current pom artifact id & version
+	//finding the local repository path ie- .m2
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		getLog().info("Printing Current Project's Artifact ID & Version");
 		getLog().info("Project Version: " + project.getVersion().toString());

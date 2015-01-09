@@ -14,6 +14,7 @@ import org.apache.maven.plugin.MojoFailureException;
 
 public class PomContents extends AbstractMojo {
 
+		//accepting the pom file and checking current project's artifact id with all the artifact id's found in pom
 	public void getPomObject(File pomfile, String current_project_artifact) {
 
 		MavenProject project;
@@ -27,9 +28,6 @@ public class PomContents extends AbstractMojo {
 
 			project = new MavenProject(model);
 			project.getProperties();
-//			getLog().info("Version & Artifact Id's of Dependencies found in Pom.xml");
-//			getLog().info("Project Version: " + project.getVersion().toString());
-//			getLog().info("Project Dependencies: ");
 			@SuppressWarnings("unchecked")
 			List<Dependency> dependencies = project.getDependencies();
 			Iterator<Dependency> myIterator = dependencies.iterator();
@@ -39,9 +37,6 @@ public class PomContents extends AbstractMojo {
 				Dependency current = myIterator.next();
 				artifact = current.getArtifactId();
 				version = current.getVersion();
-				// getLog().info(
-				// "Artifact ID: " + current.getArtifactId() + "\tVersion: "
-				// + current.getVersion());
 				if (artifact.equals(current_project_artifact)) {
 					getLog().info("pom file:" + pomfile);
 					getLog().info(
@@ -50,7 +45,6 @@ public class PomContents extends AbstractMojo {
 				}
 			}
 		}
-		// getLog().info("Artifact ID: " + artifact);
 		catch (Exception ex) {
 		}
 	}
