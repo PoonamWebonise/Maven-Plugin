@@ -19,6 +19,7 @@ package com.webonise.plugins;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 
 /**
@@ -28,7 +29,7 @@ import org.apache.maven.project.MavenProject;
  * 
  * @phase compile
  */
-public class MyMojo extends AbstractMojo {
+public class VersionResolutionMojo extends AbstractMojo {
 	/**
 	 * Location of the file.
 	 * 
@@ -45,9 +46,8 @@ public class MyMojo extends AbstractMojo {
 		getLog().info("Project Version: " + project.getVersion().toString());
 		getLog().info("Artifact ID " + project.getArtifactId().toString());
 		getLog().info("LocalRepository Path:" + localRepository.getBasedir());
-
-		String repository_path = localRepository.getBasedir().concat("/");
+		String repositoryPath = localRepository.getBasedir().concat("/");
 		PomFileFinder pomfile = new PomFileFinder();
-		pomfile.findRepository(repository_path, project.getArtifactId(), project.getVersion());
+		pomfile.findRepository(repositoryPath, project.getArtifactId(), project.getVersion());
 	}
 }
