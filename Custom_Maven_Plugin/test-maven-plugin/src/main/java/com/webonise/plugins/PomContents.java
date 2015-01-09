@@ -1,6 +1,7 @@
 package com.webonise.plugins;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Iterator;
 import java.util.List;
@@ -16,44 +17,48 @@ public class PomContents extends AbstractMojo {
 
 	// accepting the pom file and checking current project's artifact id with
 	// all the artifact id's found in pom
-	public void getPomObject(File pomfile, String current_project_artifact,
-			String current_project_version) {
+	public void getPomObject(File pomfile, String currentProjectArtifact,
+			String currentProjectVersion) {
 
 		MavenProject project;
-		Model model = null;
-		FileReader reader = null;
+		
+		
 		MavenXpp3Reader mavenreader = new MavenXpp3Reader();
 		try {
-			reader = new FileReader(pomfile);
-			model = mavenreader.read(reader);
+			FileReader reader = new FileReader(pomfile);
+			Model model = mavenreader.read(reader);
 			model.setPomFile(pomfile);
 
 			project = new MavenProject(model);
 			project.getProperties();
 			@SuppressWarnings("unchecked")
 			List<Dependency> dependencies = project.getDependencies();
-			Iterator<Dependency> myIterator = dependencies.iterator();
+			Iterator<Dependency> dependencyIterator = dependencies.iterator();
 			String artifact = "";
 			String version = "";
-			while (myIterator.hasNext()) {
-				Dependency current = myIterator.next();
+			while (dependencyIterator.hasNext()) {
+				Dependency current = dependencyIterator.next();
 				artifact = current.getArtifactId();
 				version = current.getVersion();
-				if (artifact.equals(current_project_artifact)) {
+				if (artifact.equals(currentProjectArtifact)) {
 					getLog().info("pom file:" + pomfile);
-					getLog().info(
-							"Dependency Artifact ID: " + artifact
-									+ "\tVersion: " + version);
-					if (!current_project_version.equalsIgnoreCase(version))
+					getLog().info("Dependency Artifact ID: " + artifact+ "\tVersion: " + version);
+					if (!currentProjectVersion.equalsIgnoreCase(version))
 					{
 						getLog().error("-----------------------------------------------------------------------");
 						getLog().error("DEPENDENCY VERSION MISMATCH in one of the Dependants. Please update xml and retry.");
 						getLog().error("-----------------------------------------------------------------------");
 					} else
-						getLog().info("Current Version: " + current_project_version+"Version found in pom: " + version);
+						getLog().info("Current Version: " + currentProjectVersion+"Version found in pom: " + version);
 				}
 			}
-		} catch (Exception ex) {
+		}
+		catch (FileNotFoundException ex)
+		{
+			getLog().error("pom File not found");
+		}
+		catch (Exception ex)
+		{
 		}
 	}
 
@@ -62,3 +67,4 @@ public class PomContents extends AbstractMojo {
 
 	}
 }
+         

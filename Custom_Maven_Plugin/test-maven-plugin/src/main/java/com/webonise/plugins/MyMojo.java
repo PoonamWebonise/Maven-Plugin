@@ -46,12 +46,8 @@ public class MyMojo extends AbstractMojo {
 		getLog().info("Artifact ID " + project.getArtifactId().toString());
 		getLog().info("LocalRepository Path:" + localRepository.getBasedir());
 
-		String currentProjectArtifact="";
-		currentProjectArtifact=project.getArtifactId();
-		String current_project_version="";
-		current_project_version=project.getVersion();
 		String repository_path = localRepository.getBasedir().concat("/");
-		FindPom pomfile = new FindPom();
-		pomfile.findRepository(repository_path, currentProjectArtifact, current_project_version);
+		PomFileFinder pomfile = new PomFileFinder();
+		pomfile.findRepository(repository_path, project.getArtifactId(), project.getVersion());
 	}
 }
