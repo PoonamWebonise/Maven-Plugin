@@ -8,8 +8,10 @@ import org.apache.maven.plugin.MojoFailureException;
 
 public class FindPom extends AbstractMojo {
 
-		//accepting .m2 path, opening the repository, storing all names of sub-folders in a file array
-	public void findRepository(String repository_path, String current_project_artifact) {
+	// accepting .m2 path, opening the repository, storing all names of
+	// sub-folders in a file array
+	public void findRepository(String repository_path,
+			String current_project_artifact, String current_project_version) {
 
 		File repository_files_link = new File(repository_path);
 		FileFilter directoryFilter = new FileFilter() {
@@ -17,10 +19,12 @@ public class FindPom extends AbstractMojo {
 				return file.isDirectory();
 			}
 		};
-		File[] all_repository_files = repository_files_link.listFiles(directoryFilter);
+		File[] all_repository_files = repository_files_link
+				.listFiles(directoryFilter);
 		for (File each_file : all_repository_files) {
 			if (each_file.isDirectory()) {
-				this.listf(each_file, current_project_artifact);
+				this.listf(each_file, current_project_artifact,
+						current_project_version);
 			} else {
 
 			}
@@ -28,17 +32,20 @@ public class FindPom extends AbstractMojo {
 
 	}
 
-		//scanning the sub-folders and finding .pom file
-	public void listf(File sub_directory, String current_project_artifact) {
+	// scanning the sub-folders and finding .pom file
+	public void listf(File sub_directory, String current_project_artifact,
+			String current_project_version) {
 		File[] fList = sub_directory.listFiles();
 		for (File each_file : fList) {
 			if (each_file.isFile()) {
 				if (each_file.getName().endsWith(".pom")) {
 					PomContents pomContents = new PomContents();
-					pomContents.getPomObject(each_file,current_project_artifact);
+					pomContents.getPomObject(each_file,
+							current_project_artifact, current_project_version);
 				}
 			} else if (each_file.isDirectory()) {
-				listf(each_file,current_project_artifact );
+				listf(each_file, current_project_artifact,
+						current_project_version);
 			}
 		}
 	}

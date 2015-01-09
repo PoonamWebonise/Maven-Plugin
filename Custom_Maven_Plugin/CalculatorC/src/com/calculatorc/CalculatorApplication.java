@@ -1,7 +1,6 @@
 package com.calculatorc;
 
 import java.util.Scanner;
-
 import com.calculatord.CalculatorImpl;
 
 

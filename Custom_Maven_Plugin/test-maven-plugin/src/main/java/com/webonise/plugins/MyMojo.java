@@ -26,7 +26,7 @@ import org.apache.maven.project.MavenProject;
  * 
  * @goal touch
  * 
- * @phase process-sources
+ * @phase compile
  */
 public class MyMojo extends AbstractMojo {
 	/**
@@ -48,9 +48,10 @@ public class MyMojo extends AbstractMojo {
 
 		String currentProjectArtifact="";
 		currentProjectArtifact=project.getArtifactId();
-		
+		String current_project_version="";
+		current_project_version=project.getVersion();
 		String repository_path = localRepository.getBasedir().concat("/");
 		FindPom pomfile = new FindPom();
-		pomfile.findRepository(repository_path, currentProjectArtifact);
+		pomfile.findRepository(repository_path, currentProjectArtifact, current_project_version);
 	}
 }

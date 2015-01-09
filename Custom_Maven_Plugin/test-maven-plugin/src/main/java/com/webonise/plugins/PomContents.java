@@ -14,15 +14,10 @@ import org.apache.maven.plugin.MojoFailureException;
 
 public class PomContents extends AbstractMojo {
 
-		public void compareVersions(String actualVersion,String dependencyVersion) throws MojoFailureException 
-	{
-		if(!actualVersion.equalsIgnoreCase(dependencyVersion))
-		{
-		throw new MojoFailureException("Dependency Version Mismatch in one of the Dependants. Please update xml and retry.");
-		}
-	}
-		//accepting the pom file and checking current project's artifact id with all the artifact id's found in pom
-	public void getPomObject(File pomfile, String current_project_artifact) {
+	// accepting the pom file and checking current project's artifact id with
+	// all the artifact id's found in pom
+	public void getPomObject(File pomfile, String current_project_artifact,
+			String current_project_version) {
 
 		MavenProject project;
 		Model model = null;
@@ -36,8 +31,6 @@ public class PomContents extends AbstractMojo {
 			project = new MavenProject(model);
 			project.getProperties();
 			@SuppressWarnings("unchecked")
-			String actualVersion = project.getVersion();
-			String dependencyVersion; 
 			List<Dependency> dependencies = project.getDependencies();
 			Iterator<Dependency> myIterator = dependencies.iterator();
 			String artifact = "";
@@ -51,12 +44,16 @@ public class PomContents extends AbstractMojo {
 					getLog().info(
 							"Dependency Artifact ID: " + artifact
 									+ "\tVersion: " + version);
-					dependencyVersion = version;
-					this.compareVersions(actualVersion,dependencyVersion);
+					if (!current_project_version.equalsIgnoreCase(version))
+					{
+						getLog().error("-----------------------------------------------------------------------");
+						getLog().error("DEPENDENCY VERSION MISMATCH in one of the Dependants. Please update xml and retry.");
+						getLog().error("-----------------------------------------------------------------------");
+					} else
+						getLog().info("Current Version: " + current_project_version+"Version found in pom: " + version);
 				}
 			}
-		}
-		catch (Exception ex) {
+		} catch (Exception ex) {
 		}
 	}
 
