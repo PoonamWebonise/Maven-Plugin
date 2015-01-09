@@ -19,6 +19,7 @@ package com.webonise.plugins;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.*;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
@@ -72,8 +73,7 @@ public class MyMojo extends AbstractMojo {
 			reader = new FileReader(pomfile);
 			model = mavenreader.read(reader);
 			model.setPomFile(pomfile);
-		} catch (Exception ex) {
-		}
+		
 
 		project = new MavenProject(model);
 		project.getProperties();
@@ -93,6 +93,16 @@ public class MyMojo extends AbstractMojo {
 			version = current.getVersion();
 		}
 		getLog().info("Current Artifact ID: " + artifact);
+		}
+		catch (Exception ex)
+		{
+			try
+			{
+				getLog().info("Skipping unmatched pom file: "+pomfile.getCanonicalPath());
+			}
+			catch (IOException e)
+			{}
+		}
 	}
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
