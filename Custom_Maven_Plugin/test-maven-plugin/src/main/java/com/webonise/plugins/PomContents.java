@@ -14,7 +14,7 @@ import org.apache.maven.plugin.MojoFailureException;
 
 public class PomContents extends AbstractMojo {
 
-	public void getPomObject(File pomfile) {
+	public void getPomObject(File pomfile, String current_project_artifact) {
 
 		MavenProject project;
 		Model model = null;
@@ -24,27 +24,35 @@ public class PomContents extends AbstractMojo {
 			reader = new FileReader(pomfile);
 			model = mavenreader.read(reader);
 			model.setPomFile(pomfile);
-		} catch (Exception ex) {
-		}
 
-		project = new MavenProject(model);
-		project.getProperties();
-		getLog().info(
-				"Version & Artifact Id's of Dependencies found in Pom.xml");
-		getLog().info("Project Version: " + project.getVersion().toString());
-		getLog().info("Project Dependencies: ");
-		@SuppressWarnings("unchecked")
-		List<Dependency> dependencies = project.getDependencies();
-		Iterator<Dependency> myIterator = dependencies.iterator();
-		String artifact = "";
-		while (myIterator.hasNext()) {
-			Dependency current = myIterator.next();
-			getLog().info(
-					"Artifact ID: " + current.getArtifactId() + "\tVersion: "
-							+ current.getVersion());
-			artifact = current.getArtifactId();
+			project = new MavenProject(model);
+			project.getProperties();
+//			getLog().info("Version & Artifact Id's of Dependencies found in Pom.xml");
+//			getLog().info("Project Version: " + project.getVersion().toString());
+//			getLog().info("Project Dependencies: ");
+			@SuppressWarnings("unchecked")
+			List<Dependency> dependencies = project.getDependencies();
+			Iterator<Dependency> myIterator = dependencies.iterator();
+			String artifact = "";
+			String version = "";
+			while (myIterator.hasNext()) {
+				Dependency current = myIterator.next();
+				artifact = current.getArtifactId();
+				version = current.getVersion();
+				// getLog().info(
+				// "Artifact ID: " + current.getArtifactId() + "\tVersion: "
+				// + current.getVersion());
+				if (artifact.equals(current_project_artifact)) {
+					getLog().info("pom file:" + pomfile);
+					getLog().info(
+							"Dependency Artifact ID: " + artifact
+									+ "\tVersion: " + version);
+				}
+			}
 		}
-		getLog().info("Current Artifact ID: " + artifact);
+		// getLog().info("Artifact ID: " + artifact);
+		catch (Exception ex) {
+		}
 	}
 
 	public void execute() throws MojoExecutionException, MojoFailureException {

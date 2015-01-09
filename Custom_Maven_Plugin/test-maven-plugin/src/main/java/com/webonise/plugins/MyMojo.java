@@ -16,17 +16,6 @@ package com.webonise.plugins;
  * limitations under the License.
  */
 
-<<<<<<< HEAD
-=======
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.*;
-import org.apache.maven.model.Dependency;
-import org.apache.maven.model.Model;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
->>>>>>> 9d14b22e5076226646c525bb1883400d551296b2
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -50,75 +39,17 @@ public class MyMojo extends AbstractMojo {
 	/** @parameter default-value="${localRepository}" */
 	org.apache.maven.artifact.repository.ArtifactRepository localRepository;
 
-<<<<<<< HEAD
-=======
-	public void listf(File dir) {
-		File[] fList = dir.listFiles();
-		for (File file1 : fList) {
-			if (file1.isFile()) {
-				if (file1.getName().endsWith(".pom")) {
-					getLog().info("pom file:" + file1);
-					this.getPomObject(file1);
-				}
-			} else if (file1.isDirectory()) {
-				listf(file1);
-			}
-		}
-	}
-
-	public void getPomObject(File pomfile) {
-
-		MavenProject project;
-
-		Model model = null;
-		FileReader reader = null;
-		MavenXpp3Reader mavenreader = new MavenXpp3Reader();
-
-		try {
-			reader = new FileReader(pomfile);
-			model = mavenreader.read(reader);
-			model.setPomFile(pomfile);
-		
-
-		project = new MavenProject(model);
-		project.getProperties();
-		getLog().info("this is not coming");
-		getLog().info("Project Version: " + project.getVersion().toString());
-		getLog().info("Project Dependencies: ");
-		List<Dependency> dependencies = project.getDependencies();
-		Iterator<Dependency> myIterator = dependencies.iterator();
-		String artifact = "";
-		String version = "";
-		while (myIterator.hasNext()) {
-			Dependency current = myIterator.next();
-			getLog().info(
-					"Artifact ID: " + current.getArtifactId() + "\tVersion: "
-							+ current.getVersion());
-			artifact = current.getArtifactId();
-			version = current.getVersion();
-		}
-		getLog().info("Current Artifact ID: " + artifact);
-		}
-		catch (Exception ex)
-		{
-			try
-			{
-				getLog().info("Skipping unmatched pom file: "+pomfile.getCanonicalPath());
-			}
-			catch (IOException e)
-			{}
-		}
-	}
-
->>>>>>> 9d14b22e5076226646c525bb1883400d551296b2
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		getLog().info("Printing Current Project's Artifact ID & Version");
 		getLog().info("Project Version: " + project.getVersion().toString());
 		getLog().info("Artifact ID " + project.getArtifactId().toString());
 		getLog().info("LocalRepository Path:" + localRepository.getBasedir());
 
+		String currentProjectArtifact="";
+		currentProjectArtifact=project.getArtifactId();
+		
 		String repository_path = localRepository.getBasedir().concat("/");
 		FindPom pomfile = new FindPom();
-		pomfile.findRepository(repository_path);
+		pomfile.findRepository(repository_path, currentProjectArtifact);
 	}
 }

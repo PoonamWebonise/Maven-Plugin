@@ -8,7 +8,7 @@ import org.apache.maven.plugin.MojoFailureException;
 
 public class FindPom extends AbstractMojo {
 
-	public void findRepository(String repository_path) {
+	public void findRepository(String repository_path, String current_project_artifact) {
 
 		File repository_files_link = new File(repository_path);
 		FileFilter directoryFilter = new FileFilter() {
@@ -16,11 +16,10 @@ public class FindPom extends AbstractMojo {
 				return file.isDirectory();
 			}
 		};
-		File[] all_repository_files = repository_files_link
-				.listFiles(directoryFilter);
+		File[] all_repository_files = repository_files_link.listFiles(directoryFilter);
 		for (File each_file : all_repository_files) {
 			if (each_file.isDirectory()) {
-				this.listf(each_file);
+				this.listf(each_file, current_project_artifact);
 			} else {
 
 			}
@@ -28,17 +27,16 @@ public class FindPom extends AbstractMojo {
 
 	}
 
-	public void listf(File sub_directory) {
+	public void listf(File sub_directory, String current_project_artifact) {
 		File[] fList = sub_directory.listFiles();
 		for (File each_file : fList) {
 			if (each_file.isFile()) {
 				if (each_file.getName().endsWith(".pom")) {
-					getLog().info("pom file:" + each_file);
 					PomContents pomContents = new PomContents();
-					pomContents.getPomObject(each_file);
+					pomContents.getPomObject(each_file,current_project_artifact);
 				}
 			} else if (each_file.isDirectory()) {
-				listf(each_file);
+				listf(each_file,current_project_artifact );
 			}
 		}
 	}
