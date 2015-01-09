@@ -1,7 +1,6 @@
 package com.calculator;
 
 import java.util.Scanner;
-
 import com.calculatord.CalculatorImpl;
 
 public class CalculateApp {
@@ -15,6 +14,7 @@ public class CalculateApp {
 		System.out.println("Enter value1:");
 		int value2=sc.nextInt();
 		cal.addition(value1, value2);
+		sc.close();
 	}
 
 
