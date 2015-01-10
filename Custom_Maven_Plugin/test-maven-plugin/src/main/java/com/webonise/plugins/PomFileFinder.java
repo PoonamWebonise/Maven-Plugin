@@ -7,9 +7,8 @@ public class PomFileFinder{
 
 	// accepting .m2 path, opening the repository, storing all names of
 	// sub-folders in a file array
-	public void findRepository(String repositoryPath, String currentProjectArtifact, String currentProjectVersion) {
+	public void findSubDirectories(File repository, String artifactID, String version) {
 
-		File repository = new File(repositoryPath);
 		
 		//filter returning files only when they're directories
 		FileFilter directoryFilter = new FileFilter() {
@@ -21,25 +20,25 @@ public class PomFileFinder{
 		for (File currentFile : repository.listFiles(directoryFilter)){
 			if (currentFile.isDirectory())
 			{
-				this.listAllFiles(currentFile, currentProjectArtifact, currentProjectVersion);
+				this.listAllFiles(currentFile, artifactID, version);
 			}
 		}
 	}
 
 	// scanning the sub-folders and finding .pom file
-	public void listAllFiles(File subDirectory, String currentProjectArtifact, String currentProjectVersion) {
+	public void listAllFiles(File subDirectory, String artifactID, String version) {
 		PomContents pomContents = new PomContents();
-		for (File each_file : subDirectory.listFiles()) {
-			if (each_file.isFile())
+		for (File eachFile : subDirectory.listFiles()) {
+			if (eachFile.isFile())
 			{
-				if (each_file.getName().endsWith(".pom"))
+				if (eachFile.getName().endsWith(".pom"))
 				{
-					pomContents.getPomObject(each_file, currentProjectArtifact, currentProjectVersion);
+					pomContents.getPomObject(eachFile, artifactID,version);
 				}
 			}
 			else
 			{
-				listAllFiles(each_file, currentProjectArtifact,currentProjectVersion);
+				listAllFiles(eachFile, artifactID, version);
 			}
 		}
 	}
