@@ -2,6 +2,8 @@ package com.webonise.plugins;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PomFileFinder{
 
@@ -18,15 +20,13 @@ public class PomFileFinder{
 		};
 		
 		for (File currentFile : repository.listFiles(directoryFilter)){
-			if (currentFile.isDirectory())
-			{
-				this.listAllFiles(currentFile, artifactID, version);
-			}
+			this.scanAllFiles(currentFile, artifactID, version);
 		}
 	}
 
 	// scanning the sub-folders and finding .pom file
-	public void listAllFiles(File subDirectory, String artifactID, String version) {
+	public void scanAllFiles(File subDirectory, String artifactID, String version) {
+		List<File> allPomFiles = new ArrayList<File>();
 		PomContents pomContents = new PomContents();
 		for (File eachFile : subDirectory.listFiles()) {
 			if (eachFile.isFile())
@@ -34,12 +34,14 @@ public class PomFileFinder{
 				if (eachFile.getName().endsWith(".pom"))
 				{
 					pomContents.getPomObject(eachFile, artifactID,version);
+					
 				}
 			}
 			else
 			{
-				listAllFiles(eachFile, artifactID, version);
+				scanAllFiles(eachFile, artifactID, version);
 			}
 		}
+		
 	}
 }

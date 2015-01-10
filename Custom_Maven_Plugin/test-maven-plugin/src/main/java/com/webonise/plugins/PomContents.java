@@ -4,9 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.project.MavenProject;
@@ -51,52 +48,42 @@ public class PomContents extends AbstractMojo {
 		}
 		PomFileFinder pomfile = new PomFileFinder();
 		pomfile.findSubDirectories(repository,project.getArtifactId(),project.getVersion());
-
+		
 	}
 
 	// accepting the pom file and checking current project's artifact id with
 	// all the artifact id's found in pom
 	public void getPomObject(File pomfile, String currentProjectArtifact, String currentProjectVersion) {
 		
-		
-
 		try {
+			//getting Model for the passed pom file
 			Model model = new MavenXpp3Reader().read(new FileReader(pomfile));
 			model.setPomFile(pomfile);
-
+			
+			//Getting the MavenProject from the Model
 			project = new MavenProject(model);
 			project.getProperties();
-			@SuppressWarnings("unchecked")
-			List<Dependency> dependencies = project.getDependencies();
-			Iterator<Dependency> dependencyIterator = dependencies.iterator();
-			while (dependencyIterator.hasNext()) {
-				Dependency current = dependencyIterator.next();
-				String artifact = current.getArtifactId();
-				String version = current.getVersion();
-				if (artifact.equals(currentProjectArtifact)) {
-					getLog().info("pom file:" + pomfile);
-					getLog().info(
-							"Dependency Artifact ID: " + artifact
-									+ "\tVersion: " + version);
-					if (!currentProjectVersion.equalsIgnoreCase(version)) {
-
-						getLog().error(
-								"DEPENDENCY VERSION MISMATCH in one of the Dependants. Please update xml and retry.");
-					} else
-						getLog().info(
-								"Current Version: " + currentProjectVersion
-										+ "Version found in pom: " + version);
-				}
-			}
-		} catch (FileNotFoundException ex) {
+			
+			//Calling function to resolve version of dependancy and the current project
+			VersionResolver versionResolver = new VersionResolver();
+			versionResolver.resolveDependencyVersion(project, getLog());
+			
+		} 
+		catch (FileNotFoundException ex)
+		{
 			getLog().error("pom File not found");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (XmlPullParserException e) {
-			// TODO Auto-generated catch block
+		}
+		catch (IOException e)
+		{
 			e.printStackTrace();
 		}
+		catch (XmlPullParserException e)
+		{
+			e.printStackTrace();
+		}
+		catch(Exception ex)
+		{
+			ex.printStackTrace();
+		}
 	}
-
 }
