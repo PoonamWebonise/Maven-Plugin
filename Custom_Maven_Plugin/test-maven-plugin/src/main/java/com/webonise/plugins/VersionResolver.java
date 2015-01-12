@@ -74,15 +74,15 @@ public class VersionResolver extends AbstractMojo {
 	/**accepting the pom file and checking current project's artifact id with
 	 * all the artifact id's found in pom
 	 * 
-	 * @param pomfile
+	 * @param model
 	 * @throws IOException
 	 */
-	public void resolveDependencyVersion(File pomfile) throws IOException
+	public void resolveDependencyVersion(Model model) throws IOException
 	{
 		try
 		{
-			Model model = new MavenXpp3Reader().read(new FileReader(pomfile));
-			model.setPomFile(pomfile);
+			//Model model = new MavenXpp3Reader().read(new FileReader(pomfile));
+			//model.setPomFile(pomfile);
 
 			project = new MavenProject(model);
 			project.getProperties();
@@ -100,27 +100,20 @@ public class VersionResolver extends AbstractMojo {
 				//if the target dependency is present in the current pom file
 				if (artifact.equals(currentArtifact))
 				{
-					getLog().info("pom file:" + pomfile);
 					getLog().info("Dependency Artifact ID: " + artifact+ "\tVersion: " + version);
 					
 					//if version of the target dependency is unequal to version mentioned in the pom of the dependent
 					if (!currentVersion.equalsIgnoreCase(version))
 						getLog().error("DEPENDENCY VERSION MISMATCH in one of the Dependants. Please update xml and retry.");
 					else
-						getLog().info("Current Version: " + currentVersion+ "Version found in pom: " + version);
+						getLog().info("\tVERSION MATCHED! \nCurrent Version: " + currentVersion+ "\tVersion found in pom: " + version);
 				}
 			}
 		}
-		
-		catch (FileNotFoundException ex)
+		catch (Exception ex)
 		{
-			getLog().error("pom File not found");
+			ex.printStackTrace();
 		}
-		catch (XmlPullParserException e)
-		{	
-			//skipping incompatible .pom files....
-		}
-		
 	}
 
 }

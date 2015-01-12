@@ -11,7 +11,8 @@
   <mojos>
     <mojo>
       <goal>touch</goal>
-      <description>Goal which touches a timestamp file.</description>
+      <description>Goal to resolve version of dependency and the
+version mentioned in dependents</description>
       <requiresDirectInvocation>false</requiresDirectInvocation>
       <requiresProject>true</requiresProject>
       <requiresReports>false</requiresReports>
@@ -19,7 +20,7 @@
       <requiresOnline>false</requiresOnline>
       <inheritedByDefault>true</inheritedByDefault>
       <phase>compile</phase>
-      <implementation>com.webonise.plugins.PomContents</implementation>
+      <implementation>com.webonise.plugins.VersionResolver</implementation>
       <language>java</language>
       <instantiationStrategy>per-lookup</instantiationStrategy>
       <executionStrategy>once-per-session</executionStrategy>
@@ -30,14 +31,14 @@
           <type>org.apache.maven.artifact.repository.ArtifactRepository</type>
           <required>false</required>
           <editable>true</editable>
-          <description></description>
+          <description>location of the local repository</description>
         </parameter>
         <parameter>
           <name>project</name>
           <type>org.apache.maven.project.MavenProject</type>
           <required>true</required>
           <editable>true</editable>
-          <description>Location of the file.</description>
+          <description>Maven Project entity with default value as current project</description>
         </parameter>
       </parameters>
       <configuration>

@@ -2,21 +2,42 @@
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+
+import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
 /**
  * class responsible to find Pom files from the local repository
  *
+ *@author webonise
  */
 public class PomFileFinder{
 
 
+	/**
+	 * 
+	 */
+	private Model model;
+	
+	private MavenXpp3Reader xmlReader;
+	
+	/**
+	 * default constructor initializing MavenXpp3Reader object
+	 * 
+	 */
+	public PomFileFinder()
+	{
+		this.xmlReader = new MavenXpp3Reader();
+	}
 	/**accepting .m2 path, opening the repository, storing all names of
 	 * sub-folders in a file array
 	 * 
 	 * @param repository
 	 */
-	
 	public void findSubDirectories(File repository) {
 
 		
@@ -50,7 +71,17 @@ public class PomFileFinder{
 				{
 					try
 					{
-						pomContents.resolveDependencyVersion(eachFile);
+						this.model = this.xmlReader.read(new FileReader(eachFile));
+						this.model.setPomFile(eachFile);
+						pomContents.resolveDependencyVersion(this.model);
+					}
+					catch (XmlPullParserException e)
+					{	
+						//skipping incompatible .pom files....
+					}
+					catch (FileNotFoundException e)
+					{
+						e.printStackTrace();
 					}
 					catch (IOException e)
 					{
