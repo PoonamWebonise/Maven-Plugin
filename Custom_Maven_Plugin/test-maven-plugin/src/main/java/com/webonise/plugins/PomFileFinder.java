@@ -28,14 +28,14 @@ public class PomFileFinder{
 
 	// scanning the sub-folders and finding .pom file
 	public void listAllFiles(File subDirectory) {
-		PomContents pomContents = new PomContents();
+		VersionResolver pomContents = new VersionResolver();
 		for (File eachFile : subDirectory.listFiles()) {
 			if (eachFile.isFile())
 			{
 				if (eachFile.getName().endsWith(".pom"))
 				{
 					try {
-						pomContents.getPomObject(eachFile);
+						pomContents.resolveDependencyVersion(eachFile);
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
