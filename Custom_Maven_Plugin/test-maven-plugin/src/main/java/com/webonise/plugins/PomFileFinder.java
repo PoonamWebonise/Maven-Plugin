@@ -1,4 +1,4 @@
-package com.webonise.plugins;
+	package com.webonise.plugins;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -16,6 +16,7 @@ public class PomFileFinder{
 	 * 
 	 * @param repository
 	 */
+	
 	public void findSubDirectories(File repository) {
 
 		
@@ -41,15 +42,18 @@ public class PomFileFinder{
 	 */
 	public void listAllFiles(File subDirectory) {
 		VersionResolver pomContents = new VersionResolver();
-		for (File eachFile : subDirectory.listFiles()) {
+		for (File eachFile : subDirectory.listFiles())
+		{
 			if (eachFile.isFile())
 			{
 				if (eachFile.getName().endsWith(".pom"))
 				{
-					try {
+					try
+					{
 						pomContents.resolveDependencyVersion(eachFile);
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
+					}
+					catch (IOException e)
+					{
 						e.printStackTrace();
 					}
 				}

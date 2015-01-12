@@ -22,6 +22,7 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
  * @goal touch
  * 
  * @phase compile
+ * @author webonise
  */
 
 public class VersionResolver extends AbstractMojo {
@@ -49,16 +50,23 @@ public class VersionResolver extends AbstractMojo {
 		getLog().info("Artifact ID " + project.getArtifactId().toString());
 		getLog().info("LocalRepository Path:" + localRepository.getBasedir());
 		
+		//getting the file object for local repository
 		File repository = new File(localRepository.getBasedir().concat("/"));
-		try {
+		try
+		{
 			getLog().info(repository.getCanonicalPath());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+		}
+		catch (IOException e)
+		{
 			e.printStackTrace();
 		}
-		PomFileFinder pomfile = new PomFileFinder();
+		
+		//setting the values of current project's artifact and version
 		currentArtifact=project.getArtifactId();
 		currentVersion=project.getVersion();
+		
+		//method invocation to scan for all .pom files in the repository
+		PomFileFinder pomfile = new PomFileFinder();
 		pomfile.findSubDirectories(repository);
 
 	}
@@ -69,11 +77,10 @@ public class VersionResolver extends AbstractMojo {
 	 * @param pomfile
 	 * @throws IOException
 	 */
-	public void resolveDependencyVersion(File pomfile) throws IOException {
-		
-		
-
-		try {
+	public void resolveDependencyVersion(File pomfile) throws IOException
+	{
+		try
+		{
 			Model model = new MavenXpp3Reader().read(new FileReader(pomfile));
 			model.setPomFile(pomfile);
 
@@ -82,23 +89,25 @@ public class VersionResolver extends AbstractMojo {
 			@SuppressWarnings("unchecked")
 			List<Dependency> dependencies = project.getDependencies();
 			Iterator<Dependency> dependencyIterator = dependencies.iterator();
-			while (dependencyIterator.hasNext()) {
+			
+			//Iterating all the dependency in the pom file
+			while (dependencyIterator.hasNext())
+			{
 				Dependency current = dependencyIterator.next();
 				String artifact = current.getArtifactId();
 				String version = current.getVersion();
-				if (artifact.equals(currentArtifact)) {
+				
+				//if the target dependency is present in the current pom file
+				if (artifact.equals(currentArtifact))
+				{
 					getLog().info("pom file:" + pomfile);
-					getLog().info(
-							"Dependency Artifact ID: " + artifact
-									+ "\tVersion: " + version);
-					if (!currentVersion.equalsIgnoreCase(version)) {
-
-						getLog().error(
-								"DEPENDENCY VERSION MISMATCH in one of the Dependants. Please update xml and retry.");
-					} else
-						getLog().info(
-								"Current Version: " + currentVersion
-										+ "Version found in pom: " + version);
+					getLog().info("Dependency Artifact ID: " + artifact+ "\tVersion: " + version);
+					
+					//if version of the target dependency is unequal to version mentioned in the pom of the dependent
+					if (!currentVersion.equalsIgnoreCase(version))
+						getLog().error("DEPENDENCY VERSION MISMATCH in one of the Dependants. Please update xml and retry.");
+					else
+						getLog().info("Current Version: " + currentVersion+ "Version found in pom: " + version);
 				}
 			}
 		}
@@ -107,10 +116,9 @@ public class VersionResolver extends AbstractMojo {
 		{
 			getLog().error("pom File not found");
 		}
-		catch (XmlPullParserException e) {
-			
-			//e.printStackTrace();
-			//getLog().info("skipping incompatible pom files....");
+		catch (XmlPullParserException e)
+		{	
+			//skipping incompatible .pom files....
 		}
 		
 	}
