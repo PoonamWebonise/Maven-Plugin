@@ -2,14 +2,13 @@ package com.webonise.plugins;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
 
 public class PomFileFinder{
 
 	// accepting .m2 path, opening the repository, storing all names of
 	// sub-folders in a file array
-	public void findSubDirectories(File repository, String artifactID, String version) {
+	public void findSubDirectories(File repository) {
 
 		
 		//filter returning files only when they're directories
@@ -20,28 +19,33 @@ public class PomFileFinder{
 		};
 		
 		for (File currentFile : repository.listFiles(directoryFilter)){
-			this.scanAllFiles(currentFile, artifactID, version);
+			if (currentFile.isDirectory())
+			{
+				this.listAllFiles(currentFile);
+			}
 		}
 	}
 
 	// scanning the sub-folders and finding .pom file
-	public void scanAllFiles(File subDirectory, String artifactID, String version) {
-		List<File> allPomFiles = new ArrayList<File>();
+	public void listAllFiles(File subDirectory) {
 		PomContents pomContents = new PomContents();
 		for (File eachFile : subDirectory.listFiles()) {
 			if (eachFile.isFile())
 			{
 				if (eachFile.getName().endsWith(".pom"))
 				{
-					pomContents.getPomObject(eachFile, artifactID,version);
-					
+					try {
+						pomContents.getPomObject(eachFile);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			}
 			else
 			{
-				scanAllFiles(eachFile, artifactID, version);
+				listAllFiles(eachFile);
 			}
 		}
-		
 	}
 }
