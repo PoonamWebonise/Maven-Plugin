@@ -63,8 +63,12 @@ public class VersionResolver extends AbstractMojo {
 
 	}
 
-	// accepting the pom file and checking current project's artifact id with
-	// all the artifact id's found in pom
+	/**accepting the pom file and checking current project's artifact id with
+	 * all the artifact id's found in pom
+	 * 
+	 * @param pomfile
+	 * @throws IOException
+	 */
 	public void resolveDependencyVersion(File pomfile) throws IOException {
 		
 		

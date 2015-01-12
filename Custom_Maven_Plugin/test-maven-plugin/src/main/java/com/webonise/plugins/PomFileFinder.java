@@ -4,10 +4,17 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 
+/**Class responsible for scanning sub-directories in M2 repository
+ * and fetching .pom files
+ *  
+ */
 public class PomFileFinder{
 
-	// accepting .m2 path, opening the repository, storing all names of
-	// sub-folders in a file array
+	/**accepting repository path, opening the repository, storing all names of
+	 * sub-folders in a file array
+	 * 
+	 * @param repository
+	 */
 	public void findSubDirectories(File repository) {
 
 		
@@ -26,7 +33,10 @@ public class PomFileFinder{
 		}
 	}
 
-	// scanning the sub-folders and finding .pom file
+	/**method scanning the sub-folders recursively and finding .pom file
+	 * 
+	 * @param subDirectory
+	 */
 	public void listAllFiles(File subDirectory) {
 		VersionResolver pomContents = new VersionResolver();
 		for (File eachFile : subDirectory.listFiles()) {
