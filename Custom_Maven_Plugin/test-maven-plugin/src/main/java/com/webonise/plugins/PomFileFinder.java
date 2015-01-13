@@ -18,21 +18,20 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 public class PomFileFinder{
 
 
-	/**
-	 * 
-	 */
+	/** Model object to represent project from a pom file*/
 	private Model model;
 	
+	/** Object to parse the pom File and return a Model*/
 	private MavenXpp3Reader xmlReader;
 	
 	/**
 	 * default constructor initializing MavenXpp3Reader object
-	 * 
 	 */
 	public PomFileFinder()
 	{
 		this.xmlReader = new MavenXpp3Reader();
 	}
+	
 	/**accepting .m2 path, opening the repository, storing all names of
 	 * sub-folders in a file array
 	 * 
@@ -78,10 +77,6 @@ public class PomFileFinder{
 					catch (XmlPullParserException e)
 					{	
 						//skipping incompatible .pom files....
-					}
-					catch (FileNotFoundException e)
-					{
-						e.printStackTrace();
 					}
 					catch (IOException e)
 					{
