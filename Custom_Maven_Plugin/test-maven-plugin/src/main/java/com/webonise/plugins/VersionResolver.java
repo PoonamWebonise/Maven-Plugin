@@ -1,19 +1,16 @@
 package com.webonise.plugins;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
-import org.apache.maven.project.MavenProject;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.apache.maven.project.MavenProject;
 
 /**
  * Goal to resolve version of dependency and the
@@ -52,14 +49,9 @@ public class VersionResolver extends AbstractMojo {
 		
 		//getting the file object for local repository
 		File repository = new File(localRepository.getBasedir().concat("/"));
-		try
-		{
-			getLog().info(repository.getCanonicalPath());
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		}
+		
+			getLog().info(repository.getAbsolutePath());
+		
 		
 		//setting the values of current project's artifact and version
 		currentArtifact=project.getArtifactId();
@@ -67,7 +59,7 @@ public class VersionResolver extends AbstractMojo {
 		
 		//method invocation to scan for all .pom files in the repository
 		PomFileFinder pomfile = new PomFileFinder();
-		pomfile.findSubDirectories(repository);
+		pomfile.findPomModels(repository);
 
 	}
 
@@ -85,7 +77,7 @@ public class VersionResolver extends AbstractMojo {
 			//model.setPomFile(pomfile);
 
 			project = new MavenProject(model);
-			project.getProperties();
+			//String path= project.getModel();
 			@SuppressWarnings("unchecked")
 			List<Dependency> dependencies = project.getDependencies();
 			Iterator<Dependency> dependencyIterator = dependencies.iterator();
@@ -96,11 +88,11 @@ public class VersionResolver extends AbstractMojo {
 				Dependency current = dependencyIterator.next();
 				String artifact = current.getArtifactId();
 				String version = current.getVersion();
-				
+				//String path=current.getSystemPath();
 				//if the target dependency is present in the current pom file
 				if (artifact.equals(currentArtifact))
 				{
-					getLog().info("Dependency Artifact ID: " + artifact+ "\tVersion: " + version);
+					getLog().info("Dependency Artifact ID: " + artifact+ "\tVersion: " + version+"\tPOMFile Name :"+project.getName());
 					
 					//if version of the target dependency is unequal to version mentioned in the pom of the dependent
 					if (!currentVersion.equalsIgnoreCase(version))

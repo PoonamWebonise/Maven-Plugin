@@ -2,7 +2,6 @@
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -44,6 +43,7 @@ public class PomFileFinder{
 		//filter returning all the pom files in the present directory
 		FileFilter pomFileFilter = new FileFilter() {
 			public boolean accept(File file) {
+				
 				return (file.isFile()&&file.getName().endsWith(".pom"));
 			}
 		};
@@ -56,6 +56,7 @@ public class PomFileFinder{
 			{
 				this.model = this.xmlReader.read(new FileReader(currentFile));
 				this.model.setPomFile(currentFile);
+				this.model.getUrl();
 				pomContents.resolveDependencyVersion(this.model);
 			}
 			catch (XmlPullParserException e)
