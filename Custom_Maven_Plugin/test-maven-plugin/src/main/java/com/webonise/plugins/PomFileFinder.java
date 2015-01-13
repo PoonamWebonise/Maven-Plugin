@@ -32,59 +32,54 @@ public class PomFileFinder{
 		this.xmlReader = new MavenXpp3Reader();
 	}
 	
-	/**accepting .m2 path, opening the repository, storing all names of
-	 * sub-folders in a file array
+	/**Method finds all the .pom files in the directory 
+	 * recursively in every sub-directory
 	 * 
-	 * @param repository
+	 * @param directoryFile
 	 */
-	public void findSubDirectories(File repository) {
-
+	public void findPomModels(File directoryFile)
+	{
+		VersionResolver pomContents = new VersionResolver();
 		
-		//filter returning files only when they're directories
+		//filter returning all the pom files in the present directory
+		FileFilter pomFileFilter = new FileFilter() {
+			public boolean accept(File file) {
+				return (file.isFile()&&file.getName().endsWith(".pom"));
+			}
+		};
+		
+		if(directoryFile.listFiles(pomFileFilter).length!=0)
+		{
+		for (File currentFile : directoryFile.listFiles(pomFileFilter))
+		{
+			try
+			{
+				this.model = this.xmlReader.read(new FileReader(currentFile));
+				this.model.setPomFile(currentFile);
+				pomContents.resolveDependencyVersion(this.model);
+			}
+			catch (XmlPullParserException e)
+			{
+				// skipping incompatible .pom files....
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		}
+		
+		//filter returning all the sub-directories in the passed directory
 		FileFilter directoryFilter = new FileFilter() {
 			public boolean accept(File file) {
 				return file.isDirectory();
 			}
 		};
 		
-		for (File currentFile : repository.listFiles(directoryFilter)){
-			
-				this.listAllFiles(currentFile);
-			
-		}
-	}
-
-	
-	/**scanning the sub-folders and finding .pom file
-	 * 
-	 * @param subDirectory
-	 */
-	public void listAllFiles(File subDirectory)
-	{
-		VersionResolver pomContents = new VersionResolver();
-		for (File eachFile : subDirectory.listFiles())
+		//calling the same method recursively for sub-directories
+		for (File currentFile : directoryFile.listFiles(directoryFilter))
 		{
-			if (eachFile.isDirectory())
-			{
-				listAllFiles(eachFile);
-			}
-			else if (eachFile.getName().endsWith(".pom"))
-			{
-				try
-				{
-					this.model = this.xmlReader.read(new FileReader(eachFile));
-					this.model.setPomFile(eachFile);
-					pomContents.resolveDependencyVersion(this.model);
-				}
-				catch (XmlPullParserException e)
-				{
-					// skipping incompatible .pom files....
-				}
-				catch (IOException e)
-				{
-					e.printStackTrace();
-				}
-			}
+				findPomModels(currentFile);
 		}
 	}
 }

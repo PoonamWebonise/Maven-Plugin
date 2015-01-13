@@ -1,0 +1,5 @@
+#surefire
+#Tue Jan 13 13:09:33 IST 2015
+user.dir=/media/webonise/Data_drive/Maven-Plugin/Custom_Maven_Plugin/test-maven-plugin
+localRepository=/home/webonise/.m2/repository
+basedir=/media/webonise/Data_drive/Maven-Plugin/Custom_Maven_Plugin/test-maven-plugin
