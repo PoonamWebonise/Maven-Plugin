@@ -60,34 +60,31 @@ public class PomFileFinder{
 	 * 
 	 * @param subDirectory
 	 */
-	public void listAllFiles(File subDirectory) {
+	public void listAllFiles(File subDirectory)
+	{
 		VersionResolver pomContents = new VersionResolver();
 		for (File eachFile : subDirectory.listFiles())
 		{
-			if (eachFile.isFile())
-			{
-				if (eachFile.getName().endsWith(".pom"))
-				{
-					try
-					{
-						this.model = this.xmlReader.read(new FileReader(eachFile));
-						this.model.setPomFile(eachFile);
-						pomContents.resolveDependencyVersion(this.model);
-					}
-					catch (XmlPullParserException e)
-					{	
-						//skipping incompatible .pom files....
-					}
-					catch (IOException e)
-					{
-						e.printStackTrace();
-					}
-
-				}
-			}
-			else
+			if (eachFile.isDirectory())
 			{
 				listAllFiles(eachFile);
+			}
+			else if (eachFile.getName().endsWith(".pom"))
+			{
+				try
+				{
+					this.model = this.xmlReader.read(new FileReader(eachFile));
+					this.model.setPomFile(eachFile);
+					pomContents.resolveDependencyVersion(this.model);
+				}
+				catch (XmlPullParserException e)
+				{
+					// skipping incompatible .pom files....
+				}
+				catch (IOException e)
+				{
+					e.printStackTrace();
+				}
 			}
 		}
 	}
