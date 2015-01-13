@@ -75,17 +75,9 @@ public class PomFileFinder{
 						this.model.setPomFile(eachFile);
 						pomContents.resolveDependencyVersion(this.model);
 					}
-					catch (XmlPullParserException e)
+					catch (XmlPullParserException | IOException e)
 					{	
 						//skipping incompatible .pom files....
-					}
-					catch (FileNotFoundException e)
-					{
-						e.printStackTrace();
-					}
-					catch (IOException e)
-					{
-						e.printStackTrace();
 					}
 				}
 			}
