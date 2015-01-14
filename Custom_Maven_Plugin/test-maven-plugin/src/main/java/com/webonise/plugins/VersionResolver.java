@@ -1,19 +1,20 @@
 package com.webonise.plugins;
 
 import java.io.File;
+import java.io.FileFilter;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
-
-import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.ComparableVersion;
-import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
 /**
  * Goal to resolve version of dependency and the
@@ -34,6 +35,12 @@ public class VersionResolver extends AbstractMojo {
 	 */
 	MavenProject project;
 	
+	/** Model object to represent project from a pom file*/
+	private Model model;
+	
+	/** Object to parse the pom File and return a Model*/
+	private MavenXpp3Reader xmlReader;
+	
 	/**
 	 * location of the local repository
 	 * 
@@ -44,6 +51,9 @@ public class VersionResolver extends AbstractMojo {
 	public static String currentArtifact;
 	public static String currentVersion;
 	public void execute() throws MojoExecutionException, MojoFailureException {
+		
+		this.xmlReader = new MavenXpp3Reader();
+		
 		getLog().info("Printing Current Project's Artifact ID & Version");
 		getLog().info("Project Version: " + project.getVersion().toString());
 		getLog().info("Artifact ID " + project.getArtifactId().toString());
@@ -58,11 +68,64 @@ public class VersionResolver extends AbstractMojo {
 		currentVersion=project.getVersion();
 		
 		//method invocation to scan for all .pom files in the repository
-		PomFileFinder pomfile = new PomFileFinder();
-		pomfile.findPomModels(repository);
+		this.findPomModels(repository);
 
 	}
-
+	
+	/**Method finds all the .pom files in the directory 
+	 * recursively in every sub-directory
+	 * 
+	 * @param directoryFile
+	 */
+	public void findPomModels(File directoryFile)
+	{
+		
+		//filter returning all the pom files in the present directory
+		FileFilter pomFileFilter = new FileFilter() {
+			public boolean accept(File file) {
+				return (file.isFile()&&file.getName().endsWith(".pom"));
+			}
+		};
+		
+		if(directoryFile.listFiles(pomFileFilter).length!=0)
+		{
+		for (File currentFile : directoryFile.listFiles(pomFileFilter))
+		{
+			try
+			{
+				//setting the Model object for the current pom file
+				this.model = this.xmlReader.read(new FileReader(currentFile));
+				this.model.setPomFile(currentFile);
+				this.model.getUrl();
+				
+				//method invocation to resolve the version of dependency in the pom
+				this.resolveDependencyVersion(this.model);
+			}
+			catch (XmlPullParserException e)
+			{
+				// skipping incompatible .pom files....
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		}
+		
+		//filter returning all the sub-directories in the passed directory
+		FileFilter directoryFilter = new FileFilter() {
+			public boolean accept(File file) {
+				return file.isDirectory();
+			}
+		};
+		
+		//calling the same method recursively for sub-directories
+		for (File currentFile : directoryFile.listFiles(directoryFilter))
+		{
+				findPomModels(currentFile);
+		}
+	}
+	
 	/**accepting the pom file and checking current project's artifact id with
 	 * all the artifact id's found in pom
 	 * 
@@ -117,15 +180,14 @@ public class VersionResolver extends AbstractMojo {
 		}
 		catch(NullPointerException e)
 		{
-			//DO NOTHING!
-			//We know this exception will come and don't want to populate console with stack-trace
+			//skipping the dependencies without version info, hence generating NullPointerException
 		}
 		catch (Exception ex)
 		{
 			ex.printStackTrace();
 		}
 	}
-
+	
 	/**Method returns true if version of the target project is within the
 	 * range of version-range mentioned as dependency in any other 
 	 * dependent project.
@@ -175,5 +237,4 @@ public class VersionResolver extends AbstractMojo {
 		//return true if both the flags are set true
 		return minimumInRange & maximumInRange;
 	}
-
 }
