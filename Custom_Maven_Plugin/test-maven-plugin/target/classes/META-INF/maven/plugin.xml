@@ -11,8 +11,7 @@
   <mojos>
     <mojo>
       <goal>touch</goal>
-      <description>Goal to resolve version of dependency and the
-version mentioned in dependents</description>
+      <description>Goal to resolve version of dependency and the version mentioned in dependents</description>
       <requiresDirectInvocation>false</requiresDirectInvocation>
       <requiresProject>true</requiresProject>
       <requiresReports>false</requiresReports>
@@ -101,12 +100,6 @@ version mentioned in dependents</description>
       <artifactId>plexus-interpolation</artifactId>
       <type>jar</type>
       <version>1.11</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-artifact</artifactId>
-      <type>jar</type>
-      <version>2.2.1</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.plexus</groupId>
@@ -293,6 +286,12 @@ version mentioned in dependents</description>
       <artifactId>plexus-compiler-javac</artifactId>
       <type>jar</type>
       <version>1.9.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-artifact</artifactId>
+      <type>jar</type>
+      <version>3.2.5</version>
     </dependency>
   </dependencies>
 </plugin>

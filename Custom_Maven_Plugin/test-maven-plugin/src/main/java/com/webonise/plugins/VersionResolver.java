@@ -175,4 +175,5 @@ public class VersionResolver extends AbstractMojo {
 		//return true if both the flags are set true
 		return minimumInRange & maximumInRange;
 	}
+
 }
