@@ -1,0 +1,5 @@
+#surefire
+#Wed Jan 14 15:58:01 IST 2015
+user.dir=/home/webonise/Desktop/Custom_Maven_Plugin/test-maven-plugin
+localRepository=/home/webonise/.m2/repository
+basedir=/home/webonise/Desktop/Custom_Maven_Plugin/test-maven-plugin
