@@ -9,7 +9,7 @@
   		<dependency>
   			<groupId>CalculatorD</groupId>
    			<artifactId>CalculatorD</artifactId>
-  			<version>0.0.1-SNAPSHOT</version>
+  			<version>[0.0.1-SNAPSHOT,0.0.4-SNAPSHOT)</version>
   		</dependency>
   </dependencies>
    <build>

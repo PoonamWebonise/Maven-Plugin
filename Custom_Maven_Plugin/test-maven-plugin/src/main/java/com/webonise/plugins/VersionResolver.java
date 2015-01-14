@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.maven.artifact.versioning.ArtifactVersion;
+import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.plugin.AbstractMojo;
@@ -21,7 +24,6 @@ import org.apache.maven.project.MavenProject;
  * @phase compile
  * @author webonise
  */
-
 public class VersionResolver extends AbstractMojo {
 
 	/**
@@ -49,10 +51,8 @@ public class VersionResolver extends AbstractMojo {
 		
 		//getting the file object for local repository
 		File repository = new File(localRepository.getBasedir().concat("/"));
-		
-			getLog().info(repository.getAbsolutePath());
-		
-		
+		getLog().info(repository.getAbsolutePath());
+			
 		//setting the values of current project's artifact and version
 		currentArtifact=project.getArtifactId();
 		currentVersion=project.getVersion();
@@ -75,32 +75,50 @@ public class VersionResolver extends AbstractMojo {
 		{
 			//Model model = new MavenXpp3Reader().read(new FileReader(pomfile));
 			//model.setPomFile(pomfile);
-
+			
+			//'[' means inclusive i.e. including min/max '(' means exclusive i.e. excluding min/max
+			
 			project = new MavenProject(model);
 			//String path= project.getModel();
 			@SuppressWarnings("unchecked")
 			List<Dependency> dependencies = project.getDependencies();
 			Iterator<Dependency> dependencyIterator = dependencies.iterator();
-			
 			//Iterating all the dependency in the pom file
 			while (dependencyIterator.hasNext())
 			{
 				Dependency current = dependencyIterator.next();
 				String artifact = current.getArtifactId();
 				String version = current.getVersion();
-				//String path=current.getSystemPath();
-				//if the target dependency is present in the current pom file
-				if (artifact.equals(currentArtifact))
+				ComparableVersion target = new ComparableVersion(currentVersion);
+				//if the target dependency is present in the current pom file AND the version is in range
+				if (artifact.equals(currentArtifact)&&version.matches("(\\[|\\()(.*)(\\]|\\))"))
 				{
-					getLog().info("Dependency Artifact ID: " + artifact+ "\tVersion: " + version+"\tPOMFile Name :"+project.getName());
-					
-					//if version of the target dependency is unequal to version mentioned in the pom of the dependent
-					if (!currentVersion.equalsIgnoreCase(version))
-						getLog().error("DEPENDENCY VERSION MISMATCH in one of the Dependants. Please update xml and retry.");
-					else
-						getLog().info("\tVERSION MATCHED! \nCurrent Version: " + currentVersion+ "\tVersion found in pom: " + version);
+
+					String maxVersion = version.split(",")[1];
+					String minVersion = version.split(",")[0];
+					if(!this.isVersionCompatible(target, minVersion, maxVersion))
+					{
+						getLog().error("DEPENDENCY VERSION MISMATCH. please check version of dependency in "+project.getGroupId()+"."+project.getArtifactId());
+						getLog().error("Dependency Artifact ID: " + artifact+ "\tVersion: " + version+"\tPOMFile Name :"+project.getName());
+					}
+				}
+				
+				//if the target dependency is present in the current pom file
+				else if(artifact.equals(currentArtifact))
+				{
+					ComparableVersion dependent = new ComparableVersion(version);
+					if(target.compareTo(dependent)!=0)
+					{
+						getLog().error("DEPENDENCY VERSION MISMATCH. please check version of dependency in "+project.getGroupId()+"."+project.getArtifactId());
+						getLog().error("Dependency Artifact ID: " + artifact+ "\tVersion: " + version+"\tPOMFile Name :"+project.getName());
+					}
 				}
 			}
+		}
+		catch(NullPointerException e)
+		{
+			//DO NOTHING!
+			//We know this exception will come and don't want to populate console with stack-trace
 		}
 		catch (Exception ex)
 		{
@@ -108,4 +126,53 @@ public class VersionResolver extends AbstractMojo {
 		}
 	}
 
+	/**Method returns true if version of the target project is within the
+	 * range of version-range mentioned as dependency in any other 
+	 * dependent project.
+	 * 
+	 * @param targetVersion
+	 * @param dependencyMinVersion
+	 * @param dependencyMaxVersion
+	 * @return boolean
+	 */
+	boolean isVersionCompatible(ComparableVersion targetVersion, String dependencyMinVersion,String dependencyMaxVersion)
+	{
+		boolean minimumInRange=false;
+		boolean maximumInRange = false;
+		
+		boolean minBoundInclusive = true, maxBoundInclusive = true;
+		
+		//if minimum version is excluded
+		if(dependencyMinVersion.contains("("))
+			minBoundInclusive=false;
+		
+		//if maximum version is excluded
+		if(dependencyMaxVersion.contains(")"))
+			maxBoundInclusive=false;
+		
+		//removing braces from the version Strings
+		dependencyMinVersion=dependencyMinVersion.replace("[", "");
+		dependencyMinVersion=dependencyMinVersion.replace("(", "");
+		dependencyMaxVersion=dependencyMaxVersion.replace("]", "");
+		dependencyMaxVersion=dependencyMaxVersion.replace(")", "");
+		
+		//creating ComparableVersion objects
+		ComparableVersion minVersion = new ComparableVersion(dependencyMinVersion);
+		ComparableVersion maxVersion = new ComparableVersion(dependencyMaxVersion);
+		
+		//checking for minimum bound
+		if(minBoundInclusive&&targetVersion.compareTo(minVersion)>=0)
+			minimumInRange = true;
+		else if(targetVersion.compareTo(minVersion)>0)
+			minimumInRange = true;
+		
+		//checking for maximum bound
+		if(maxBoundInclusive&&targetVersion.compareTo(maxVersion)<=0)
+			maximumInRange = true;
+		else if(targetVersion.compareTo(maxVersion)<0)
+			maximumInRange = true;
+		
+		//return true if both the flags are set true
+		return minimumInRange & maximumInRange;
+	}
 }
