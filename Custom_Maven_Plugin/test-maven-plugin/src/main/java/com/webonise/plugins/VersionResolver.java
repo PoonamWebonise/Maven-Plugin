@@ -23,8 +23,8 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
  * @phase compile
  * @author webonise
  */
-public class VersionResolver extends AbstractMojo {
-
+public class VersionResolver extends AbstractMojo
+{
 	/**
 	 * Maven Project entity with default value as current project 
 	 * 
@@ -55,8 +55,8 @@ public class VersionResolver extends AbstractMojo {
 	 * @throws MojoFailureException
 	 * @see org.apache.maven.plugin.AbstractMojo#execute()
 	 */
-	public void execute() throws MojoExecutionException, MojoFailureException {
-		
+	public void execute() throws MojoExecutionException, MojoFailureException
+	{
 		this.xmlReader = new MavenXpp3Reader();
 		
 		getLog().info("Printing Current Project's Artifact ID & Version");
@@ -74,7 +74,6 @@ public class VersionResolver extends AbstractMojo {
 		
 		//method invocation to scan for all .pom files in the repository
 		this.findPomModels(repository);
-
 	}
 	
 	/**Method finds all the .pom files in the directory 
@@ -87,39 +86,41 @@ public class VersionResolver extends AbstractMojo {
 		
 		//filter returning all the pom files in the present directory
 		FileFilter pomFileFilter = new FileFilter() {
-			public boolean accept(File file) {
+			public boolean accept(File file)
+			{
 				return (file.isFile()&&file.getName().endsWith(".pom"));
 			}
 		};
 		
 		if(directoryFile.listFiles(pomFileFilter).length!=0)
 		{
-		for (File currentFile : directoryFile.listFiles(pomFileFilter))
-		{
-			try
+			for (File currentFile : directoryFile.listFiles(pomFileFilter))
 			{
-				//setting the Model object for the current pom file
-				this.model = this.xmlReader.read(new FileReader(currentFile));
-				this.model.setPomFile(currentFile);
-				this.model.getUrl();
-				
-				//method invocation to resolve the version of dependency in the pom
-				this.resolveDependencyVersion(this.model);
+				try
+				{
+					//setting the Model object for the current pom file
+					this.model = this.xmlReader.read(new FileReader(currentFile));
+					this.model.setPomFile(currentFile);
+					this.model.getUrl();
+					
+					//method invocation to resolve the version of dependency in the pom
+					this.resolveDependencyVersion(this.model);
+				}
+				catch (XmlPullParserException e)
+				{
+					// skipping incompatible .pom files....
+				}
+				catch (IOException e)
+				{
+					e.printStackTrace();
+				}
 			}
-			catch (XmlPullParserException e)
-			{
-				// skipping incompatible .pom files....
-			}
-			catch (IOException e)
-			{
-				e.printStackTrace();
-			}
-		}
 		}
 		
 		//filter returning all the sub-directories in the passed directory
 		FileFilter directoryFilter = new FileFilter() {
-			public boolean accept(File file) {
+			public boolean accept(File file)
+			{
 				return file.isDirectory();
 			}
 		};
