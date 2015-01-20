@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.model.Dependency;
@@ -21,7 +20,6 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
  * version mentioned in dependents
  * 
  * @goal touch
- * 
  * @phase compile
  * @author webonise
  */
@@ -48,8 +46,15 @@ public class VersionResolver extends AbstractMojo {
 	 */
 	org.apache.maven.artifact.repository.ArtifactRepository localRepository;
 	
-	public static String currentArtifact;
-	public static String currentVersion;
+	public static String targetArtifact;
+	public static String targetVersion;
+	
+	/**default execute method of AbstractMojo class
+	 * 
+	 * @throws MojoExecutionException
+	 * @throws MojoFailureException
+	 * @see org.apache.maven.plugin.AbstractMojo#execute()
+	 */
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		
 		this.xmlReader = new MavenXpp3Reader();
@@ -62,10 +67,10 @@ public class VersionResolver extends AbstractMojo {
 		//getting the file object for local repository
 		File repository = new File(localRepository.getBasedir().concat("/"));
 		getLog().info(repository.getAbsolutePath());
-			
+		
 		//setting the values of current project's artifact and version
-		currentArtifact=project.getArtifactId();
-		currentVersion=project.getVersion();
+		targetArtifact=project.getArtifactId();
+		targetVersion=project.getVersion();
 		
 		//method invocation to scan for all .pom files in the repository
 		this.findPomModels(repository);
@@ -126,55 +131,39 @@ public class VersionResolver extends AbstractMojo {
 		}
 	}
 	
-	/**accepting the pom file and checking current project's artifact id with
+	/**accepting the pom file and checking target project's artifact id with
 	 * all the artifact id's found in pom
 	 * 
-	 * @param model
+	 * @param model : Model object of the Project
 	 * @throws IOException
 	 */
 	public void resolveDependencyVersion(Model model) throws IOException
 	{
 		try
 		{
-			//Model model = new MavenXpp3Reader().read(new FileReader(pomfile));
-			//model.setPomFile(pomfile);
-			
-			//'[' means inclusive i.e. including min/max '(' means exclusive i.e. excluding min/max
-			
 			project = new MavenProject(model);
-			//String path= project.getModel();
+
 			@SuppressWarnings("unchecked")
 			List<Dependency> dependencies = project.getDependencies();
-			Iterator<Dependency> dependencyIterator = dependencies.iterator();
 			//Iterating all the dependency in the pom file
-			while (dependencyIterator.hasNext())
+			for(Dependency currentDependency:dependencies)
 			{
-				Dependency current = dependencyIterator.next();
-				String artifact = current.getArtifactId();
-				String version = current.getVersion();
-				ComparableVersion target = new ComparableVersion(currentVersion);
+				String artifact = currentDependency.getArtifactId();
+				String version = currentDependency.getVersion();
+				ComparableVersion target = new ComparableVersion(targetVersion);
 				//if the target dependency is present in the current pom file AND the version is in range
-				if (artifact.equals(currentArtifact)&&version.matches("(\\[|\\()(.*)(\\]|\\))"))
+				if(artifact.equals(targetArtifact)&&version.matches("(\\[|\\()(.*)(\\]|\\))"))
 				{
-
-					String maxVersion = version.split(",")[1];
-					String minVersion = version.split(",")[0];
-					if(!this.isVersionCompatible(target, minVersion, maxVersion))
-					{
-						getLog().error("DEPENDENCY VERSION MISMATCH. please check version of dependency in "+project.getGroupId()+"."+project.getArtifactId());
-						getLog().error("Dependency Artifact ID: " + artifact+ "\tVersion: " + version+"\tPOMFile Name :"+project.getName());
-					}
+					//invoking method that checks if target version is in the dependency version range
+					//version.split(",")[0] returns substring before ',' i.e. Min version
+					//version.split(",")[1] returns substring after ',' i.e. Max version
+					this.checkVersionCompatiblity(target, version.split(",")[0], version.split(",")[1]);
 				}
 				
 				//if the target dependency is present in the current pom file
-				else if(artifact.equals(currentArtifact))
+				else if(artifact.equals(targetArtifact))
 				{
-					ComparableVersion dependent = new ComparableVersion(version);
-					if(target.compareTo(dependent)!=0)
-					{
-						getLog().error("DEPENDENCY VERSION MISMATCH. please check version of dependency in "+project.getGroupId()+"."+project.getArtifactId());
-						getLog().error("Dependency Artifact ID: " + artifact+ "\tVersion: " + version+"\tPOMFile Name :"+project.getName());
-					}
+					this.checkVersionCompatiblity(target, version);
 				}
 			}
 		}
@@ -188,20 +177,42 @@ public class VersionResolver extends AbstractMojo {
 		}
 	}
 	
-	/**Method returns true if version of the target project is within the
+	/**Method checks if version of the target project is equal
+	 * to version mentioned as dependency in any other 
+	 * dependent project.
+	 * 
+	 * @param targetVersion : ComparableVersion object of target project
+	 * @param dependencyVersion : String containing version of the dependency 
+	 */
+	void checkVersionCompatiblity(ComparableVersion targetVersion,String dependencyVersion)
+	{
+		ComparableVersion dependent = new ComparableVersion(dependencyVersion);
+		//if the target version is equal to dependency version
+		if(targetVersion.compareTo(dependent)!=0)
+		{
+			getLog().error("DEPENDENCY VERSION MISMATCH. please check version of dependency in "+project.getGroupId()+"."+project.getArtifactId());
+			throw new DependencyVersionMismatchError(getLog());
+		}
+	}
+	
+	/**Method checks if version of the target project is within the
 	 * range of version-range mentioned as dependency in any other 
 	 * dependent project.
 	 * 
-	 * @param targetVersion
-	 * @param dependencyMinVersion
-	 * @param dependencyMaxVersion
-	 * @return boolean
+	 * @param targetVersion : ComparableVersion object of target project
+	 * @param dependencyMinVersion : String containing minimum version starting by '[' or '(' representing bound inclusive or exclusive
+	 * @param dependencyMaxVersion : String containing minimum version ended by ']' or ')' representing bound inclusive or exclusive
 	 */
-	boolean isVersionCompatible(ComparableVersion targetVersion, String dependencyMinVersion,String dependencyMaxVersion)
+	void checkVersionCompatiblity(ComparableVersion targetVersion, String dependencyMinVersion,String dependencyMaxVersion)
 	{
-		boolean minimumInRange=false;
-		boolean maximumInRange = false;
+		/**flags denoting weather target version is in range 
+		 * from minimum version side and maximum version side respectively
+		 */ 
+		boolean minimumInRange,maximumInRange;
 		
+		/**flags denoting weather minimum and maximum versions 
+		 * are inclusive or exclusive. By default set to true
+		 */
 		boolean minBoundInclusive = true, maxBoundInclusive = true;
 		
 		//if minimum version is excluded
@@ -227,14 +238,22 @@ public class VersionResolver extends AbstractMojo {
 			minimumInRange = true;
 		else if(targetVersion.compareTo(minVersion)>0)
 			minimumInRange = true;
+		else
+			minimumInRange = false;
 		
 		//checking for maximum bound
 		if(maxBoundInclusive&&targetVersion.compareTo(maxVersion)<=0)
 			maximumInRange = true;
 		else if(targetVersion.compareTo(maxVersion)<0)
 			maximumInRange = true;
+		else
+			maximumInRange = false;
 		
-		//return true if both the flags are set true
-		return minimumInRange & maximumInRange;
+		//if any one of the minimumInRange and maximumInRange flags is false
+		if(!(minimumInRange & maximumInRange))
+		{
+			getLog().error("DEPENDENCY VERSION MISMATCH. please check version of dependency in "+project.getGroupId()+"."+project.getArtifactId());
+			throw new DependencyVersionMismatchError(getLog());
+		}
 	}
 }
