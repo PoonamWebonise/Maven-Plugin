@@ -1,10 +1,11 @@
 package com.webonise.plugins;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
@@ -56,7 +57,7 @@ public class VersionResolver extends AbstractMojo
 	 * @see org.apache.maven.plugin.AbstractMojo#execute()
 	 */
 	public void execute() throws MojoExecutionException, MojoFailureException
-	{
+	{	
 		this.xmlReader = new MavenXpp3Reader();
 		
 		getLog().info("Printing Current Project's Artifact ID & Version");
@@ -71,64 +72,46 @@ public class VersionResolver extends AbstractMojo
 		//setting the values of current project's artifact and version
 		targetArtifact=project.getArtifactId();
 		targetVersion=project.getVersion();
-		
+
 		//method invocation to scan for all .pom files in the repository
 		this.findPomModels(repository);
 	}
 	
 	/**Method finds all the .pom files in the directory 
-	 * recursively in every sub-directory
+	 * and calls invokes method VersionResover.resolveDependencyVersion(Model m)
+	 * on compatible .pom files
 	 * 
-	 * @param directoryFile
+	 * @param directoryFile : root directory File object of the repository
 	 */
 	public void findPomModels(File directoryFile)
 	{
-		
 		//filter returning all the pom files in the present directory
-		FileFilter pomFileFilter = new FileFilter() {
-			public boolean accept(File file)
-			{
-				return (file.isFile()&&file.getName().endsWith(".pom"));
-			}
-		};
+		String[] pomFilter = {"pom"};
+		@SuppressWarnings("unchecked")
 		
-		if(directoryFile.listFiles(pomFileFilter).length!=0)
+		//getting all the pom File object list in local repository
+		Collection<File> pomFiles = FileUtils.listFiles(directoryFile, pomFilter, true);
+		
+		for (File currentFile : pomFiles)
 		{
-			for (File currentFile : directoryFile.listFiles(pomFileFilter))
+			try
 			{
-				try
-				{
-					//setting the Model object for the current pom file
-					this.model = this.xmlReader.read(new FileReader(currentFile));
-					this.model.setPomFile(currentFile);
-					this.model.getUrl();
-					
-					//method invocation to resolve the version of dependency in the pom
-					this.resolveDependencyVersion(this.model);
-				}
-				catch (XmlPullParserException e)
-				{
-					// skipping incompatible .pom files....
-				}
-				catch (IOException e)
-				{
-					e.printStackTrace();
-				}
+				//setting the Model object for the current pom file
+				this.model = this.xmlReader.read(new FileReader(currentFile));
+				this.model.setPomFile(currentFile);
+				this.model.getUrl();
+				
+				//method invocation to resolve the version of dependency in the pom
+				this.resolveDependencyVersion(this.model);
 			}
-		}
-		
-		//filter returning all the sub-directories in the passed directory
-		FileFilter directoryFilter = new FileFilter() {
-			public boolean accept(File file)
+			catch (XmlPullParserException e)
 			{
-				return file.isDirectory();
+				// skipping incompatible .pom files....
 			}
-		};
-		
-		//calling the same method recursively for sub-directories
-		for (File currentFile : directoryFile.listFiles(directoryFilter))
-		{
-				findPomModels(currentFile);
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -202,7 +185,7 @@ public class VersionResolver extends AbstractMojo
 	 * 
 	 * @param targetVersion : ComparableVersion object of target project
 	 * @param dependencyMinVersion : String containing minimum version starting by '[' or '(' representing bound inclusive or exclusive
-	 * @param dependencyMaxVersion : String containing minimum version ended by ']' or ')' representing bound inclusive or exclusive
+	 * @param dependencyMaxVersion : String containing maximumInRangemum version ended by ']' or ')' representing bound inclusive or exclusive
 	 */
 	void checkVersionCompatiblity(ComparableVersion targetVersion, String dependencyMinVersion,String dependencyMaxVersion)
 	{
