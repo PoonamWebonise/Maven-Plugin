@@ -24,8 +24,8 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
  * @phase compile
  * @author webonise
  */
-public class VersionResolver extends AbstractMojo
-{
+public class VersionResolver extends AbstractMojo {
+
 	/**
 	 * Maven Project entity with default value as current project 
 	 * 
@@ -56,8 +56,8 @@ public class VersionResolver extends AbstractMojo
 	 * @throws MojoFailureException
 	 * @see org.apache.maven.plugin.AbstractMojo#execute()
 	 */
-	public void execute() throws MojoExecutionException, MojoFailureException
-	{	
+	public void execute() throws MojoExecutionException, MojoFailureException {
+		
 		this.xmlReader = new MavenXpp3Reader();
 		
 		getLog().info("Printing Current Project's Artifact ID & Version");
@@ -73,45 +73,35 @@ public class VersionResolver extends AbstractMojo
 		targetArtifact=project.getArtifactId();
 		targetVersion=project.getVersion();
 
-		//method invocation to scan for all .pom files in the repository
-		this.findPomModels(repository);
-	}
-	
-	/**Method finds all the .pom files in the directory 
-	 * and calls invokes method VersionResover.resolveDependencyVersion(Model m)
-	 * on compatible .pom files
-	 * 
-	 * @param directoryFile : root directory File object of the repository
-	 */
-	public void findPomModels(File directoryFile)
-	{
-		//filter returning all the pom files in the present directory
-		String[] pomFilter = {"pom"};
-		@SuppressWarnings("unchecked")
-		
 		//getting all the pom File object list in local repository
-		Collection<File> pomFiles = FileUtils.listFiles(directoryFile, pomFilter, true);
-		
+		@SuppressWarnings("unchecked")
+		Collection<File> pomFiles = FileUtils.listFiles(repository, new String[]{"pom"}, true);
 		for (File currentFile : pomFiles)
 		{
-			try
-			{
 				//setting the Model object for the current pom file
-				this.model = this.xmlReader.read(new FileReader(currentFile));
-				this.model.setPomFile(currentFile);
-				this.model.getUrl();
-				
+				this.resetModelObject(currentFile);
+
 				//method invocation to resolve the version of dependency in the pom
 				this.resolveDependencyVersion(this.model);
-			}
-			catch (XmlPullParserException e)
-			{
-				// skipping incompatible .pom files....
-			}
-			catch (IOException e)
-			{
-				e.printStackTrace();
-			}
+		}
+	}
+
+	/**Method resets the model object of VersionResolver class
+	 * to point to the artifact represented by the pom file 
+	 * passed as an argument. Method also skips the incompatible pom files
+	 * 
+	 * @param newPomFile : File object of the pom file
+	 */
+	void resetModelObject(File newPomFile)
+	{
+		try
+		{
+			this.model = this.xmlReader.read(new FileReader(newPomFile));
+			this.model.setPomFile(newPomFile);
+		}
+		catch (IOException | XmlPullParserException e)
+		{
+			// skipping incompatible .pom files....
 		}
 	}
 	
@@ -121,7 +111,7 @@ public class VersionResolver extends AbstractMojo
 	 * @param model : Model object of the Project
 	 * @throws IOException
 	 */
-	public void resolveDependencyVersion(Model model) throws IOException
+	public void resolveDependencyVersion(Model model)
 	{
 		try
 		{
@@ -185,7 +175,7 @@ public class VersionResolver extends AbstractMojo
 	 * 
 	 * @param targetVersion : ComparableVersion object of target project
 	 * @param dependencyMinVersion : String containing minimum version starting by '[' or '(' representing bound inclusive or exclusive
-	 * @param dependencyMaxVersion : String containing maximumInRangemum version ended by ']' or ')' representing bound inclusive or exclusive
+	 * @param dependencyMaxVersion : String containing maximum version ended by ']' or ')' representing bound inclusive or exclusive
 	 */
 	void checkVersionCompatiblity(ComparableVersion targetVersion, String dependencyMinVersion,String dependencyMaxVersion)
 	{
