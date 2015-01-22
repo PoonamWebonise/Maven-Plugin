@@ -164,7 +164,8 @@ public class VersionResolver extends AbstractMojo {
 		//if the target version is equal to dependency version
 		if(targetVersion.compareTo(dependent)!=0)
 		{
-			getLog().error("DEPENDENCY VERSION MISMATCH. please check version of dependency in "+project.getGroupId()+"."+project.getArtifactId());
+			getLog().error("DEPENDENCY VERSION MISMATCH. please check version of dependency in "
+				+project.getGroupId()+"."+project.getArtifactId());
 			throw new DependencyVersionMismatchError(getLog());
 		}
 	}
@@ -197,15 +198,9 @@ public class VersionResolver extends AbstractMojo {
 		if(dependencyMaxVersion.contains(")"))
 			maxBoundInclusive=false;
 		
-		//removing braces from the version Strings
-		dependencyMinVersion=dependencyMinVersion.replace("[", "");
-		dependencyMinVersion=dependencyMinVersion.replace("(", "");
-		dependencyMaxVersion=dependencyMaxVersion.replace("]", "");
-		dependencyMaxVersion=dependencyMaxVersion.replace(")", "");
-		
-		//creating ComparableVersion objects
-		ComparableVersion minVersion = new ComparableVersion(dependencyMinVersion);
-		ComparableVersion maxVersion = new ComparableVersion(dependencyMaxVersion);
+		//removing braces from the version Strings and creating ComparableVersion objects
+		ComparableVersion minVersion = new ComparableVersion(dependencyMinVersion.replaceAll("\\[|\\(", ""));
+		ComparableVersion maxVersion = new ComparableVersion(dependencyMaxVersion.replaceAll("\\]|\\)", ""));
 		
 		//checking for minimum bound
 		if(minBoundInclusive&&targetVersion.compareTo(minVersion)>=0)
@@ -226,7 +221,8 @@ public class VersionResolver extends AbstractMojo {
 		//if any one of the minimumInRange and maximumInRange flags is false
 		if(!(minimumInRange & maximumInRange))
 		{
-			getLog().error("DEPENDENCY VERSION MISMATCH. please check version of dependency in "+project.getGroupId()+"."+project.getArtifactId());
+			getLog().error("DEPENDENCY VERSION MISMATCH. please check version of dependency in "
+				+project.getGroupId()+"."+project.getArtifactId());
 			throw new DependencyVersionMismatchError(getLog());
 		}
 	}
