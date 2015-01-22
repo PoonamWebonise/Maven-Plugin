@@ -15,6 +15,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.apache.maven.artifact.repository.ArtifactRepository;
 
 /**
  * Goal to resolve version of dependency and the
@@ -32,20 +33,16 @@ public class VersionResolver extends AbstractMojo {
 	 * @parameter default-value="${project}"
 	 * @required
 	 */
-	MavenProject project;
-	
-	/** Model object to represent project from a pom file*/
-	private Model model;
-	
-	/** Object to parse the pom File and return a Model*/
-	private MavenXpp3Reader xmlReader;
+	private MavenProject project;
+		
+	private static int incompatiblePomFileCount=0;
 	
 	/**
 	 * location of the local repository
 	 * 
 	 *  @parameter default-value="${localRepository}" 
 	 */
-	org.apache.maven.artifact.repository.ArtifactRepository localRepository;
+	 ArtifactRepository localRepository;
 	
 	public static String targetArtifact;
 	public static String targetVersion;
@@ -57,8 +54,9 @@ public class VersionResolver extends AbstractMojo {
 	 * @see org.apache.maven.plugin.AbstractMojo#execute()
 	 */
 	public void execute() throws MojoExecutionException, MojoFailureException {
-		
-		this.xmlReader = new MavenXpp3Reader();
+				
+		/** Model object to represent project from a pom file*/
+		Model model = new Model();
 		
 		getLog().info("Printing Current Project's Artifact ID & Version");
 		getLog().info("Project Version: " + project.getVersion().toString());
@@ -79,11 +77,12 @@ public class VersionResolver extends AbstractMojo {
 		for (File currentFile : pomFiles)
 		{
 				//setting the Model object for the current pom file
-				this.resetModelObject(currentFile);
+				model = this.resetModelObject(currentFile,model);
 
 				//method invocation to resolve the version of dependency in the pom
-				this.resolveDependencyVersion(this.model);
+				this.resolveDependencyVersion(model);
 		}
+		getLog().info("skipped "+incompatiblePomFileCount + " incompatible pom files in your repository.");
 	}
 
 	/**Method resets the model object of VersionResolver class
@@ -92,16 +91,28 @@ public class VersionResolver extends AbstractMojo {
 	 * 
 	 * @param newPomFile : File object of the pom file
 	 */
-	void resetModelObject(File newPomFile)
+	Model resetModelObject(File newPomFile,Model model)
 	{
+		
+		/** Object to parse the pom File and return a Model*/
+		MavenXpp3Reader xmlReader = new MavenXpp3Reader();
 		try
 		{
-			this.model = this.xmlReader.read(new FileReader(newPomFile));
-			this.model.setPomFile(newPomFile);
+			model = xmlReader.read(new FileReader(newPomFile));
+			model.setPomFile(newPomFile);
+			
 		}
-		catch (IOException | XmlPullParserException e)
+		catch (XmlPullParserException e)
+		{
+			incompatiblePomFileCount++;
+		}
+		catch (IOException e)
 		{
 			// skipping incompatible .pom files....
+		}
+		finally
+		{
+			return model;
 		}
 	}
 	
@@ -126,7 +137,7 @@ public class VersionResolver extends AbstractMojo {
 				String version = currentDependency.getVersion();
 				ComparableVersion target = new ComparableVersion(targetVersion);
 				//if the target dependency is present in the current pom file AND the version is in range
-				if(artifact.equals(targetArtifact)&&version.matches("(\\[|\\()(.*)(\\]|\\))"))
+				if(version!=null && artifact.equals(targetArtifact)&&version.matches("(\\[|\\()(.*)(\\]|\\))"))
 				{
 					//invoking method that checks if target version is in the dependency version range
 					//version.split(",")[0] returns substring before ',' i.e. Min version
@@ -140,10 +151,6 @@ public class VersionResolver extends AbstractMojo {
 					this.checkVersionCompatiblity(target, version);
 				}
 			}
-		}
-		catch(NullPointerException e)
-		{
-			//skipping the dependencies without version info, hence generating NullPointerException
 		}
 		catch (Exception ex)
 		{
@@ -166,7 +173,7 @@ public class VersionResolver extends AbstractMojo {
 		{
 			getLog().error("DEPENDENCY VERSION MISMATCH. please check version of dependency in "
 				+project.getGroupId()+"."+project.getArtifactId());
-			throw new DependencyVersionMismatchError(getLog());
+			throw new DependencyVersionMismatchError(getLog(),incompatiblePomFileCount);
 		}
 	}
 	
@@ -183,7 +190,7 @@ public class VersionResolver extends AbstractMojo {
 		/**flags denoting weather target version is in range 
 		 * from minimum version side and maximum version side respectively
 		 */ 
-		boolean minimumInRange,maximumInRange;
+		boolean minimumInRange=false,maximumInRange=false;
 		
 		/**flags denoting weather minimum and maximum versions 
 		 * are inclusive or exclusive. By default set to true
@@ -192,38 +199,50 @@ public class VersionResolver extends AbstractMojo {
 		
 		//if minimum version is excluded
 		if(dependencyMinVersion.contains("("))
+		{	
 			minBoundInclusive=false;
-		
+		}
 		//if maximum version is excluded
 		if(dependencyMaxVersion.contains(")"))
+		{
 			maxBoundInclusive=false;
-		
+		}
 		//removing braces from the version Strings and creating ComparableVersion objects
 		ComparableVersion minVersion = new ComparableVersion(dependencyMinVersion.replaceAll("\\[|\\(", ""));
 		ComparableVersion maxVersion = new ComparableVersion(dependencyMaxVersion.replaceAll("\\]|\\)", ""));
 		
 		//checking for minimum bound
 		if(minBoundInclusive&&targetVersion.compareTo(minVersion)>=0)
+		{
 			minimumInRange = true;
+		}
 		else if(targetVersion.compareTo(minVersion)>0)
+		{
 			minimumInRange = true;
+		}
 		else
+		{
 			minimumInRange = false;
-		
+		}
 		//checking for maximum bound
 		if(maxBoundInclusive&&targetVersion.compareTo(maxVersion)<=0)
+		{
 			maximumInRange = true;
+		}
 		else if(targetVersion.compareTo(maxVersion)<0)
+		{
 			maximumInRange = true;
+		}
 		else
+		{
 			maximumInRange = false;
-		
+		}
 		//if any one of the minimumInRange and maximumInRange flags is false
 		if(!(minimumInRange & maximumInRange))
 		{
 			getLog().error("DEPENDENCY VERSION MISMATCH. please check version of dependency in "
 				+project.getGroupId()+"."+project.getArtifactId());
-			throw new DependencyVersionMismatchError(getLog());
+			throw new DependencyVersionMismatchError(getLog(), incompatiblePomFileCount);
 		}
 	}
 }
