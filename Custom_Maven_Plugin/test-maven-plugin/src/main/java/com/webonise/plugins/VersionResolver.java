@@ -55,20 +55,20 @@ public class VersionResolver extends AbstractMojo {
 	 */
 	public void execute() throws MojoExecutionException, MojoFailureException {
 
-		
-
 		VersionResolver versionResolver=new VersionResolver();
 		
+		// Print all the project information
 		versionResolver.printProjectInfo(project);
+		
+		// Get the base directory of current project
 		File repository=versionResolver.getBaseDirectoryPath(localRepository);
 		
+		// Find all te pom files from current directory
 		versionResolver.findPomFile(repository);
 
 		// setting the values of current project's artifact and version
 		targetArtifact = project.getArtifactId();
-		targetVersion = project.getVersion();
-
-		
+		targetVersion = project.getVersion();	
 	}
 
 	/**
