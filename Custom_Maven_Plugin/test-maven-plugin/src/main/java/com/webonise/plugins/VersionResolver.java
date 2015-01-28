@@ -35,19 +35,17 @@ public class VersionResolver extends AbstractMojo {
 	 */
 	private MavenProject project;
 	
-	
-	
 	/**
 	 * location of the local repository
 	 * 
 	 *  @parameter default-value="${localRepository}" 
 	 */
-	 ArtifactRepository localRepository;
+	private ArtifactRepository localRepository;
 	
 	public static String targetArtifact;
 	public static String targetVersion;
 	private static int incompatiblePomFileCount=0;
-	
+
 	/**default execute method of AbstractMojo class
 	 * 
 	 * @throws MojoExecutionException
@@ -79,6 +77,7 @@ public class VersionResolver extends AbstractMojo {
 
 				//method invocation to resolve the version of dependency in the pom
 				this.resolveDependencyVersion(model);
+				model.getProjectDirectory().getAbsoluteFile();
 		}
 		getLog().info("skipped "+incompatiblePomFileCount + " incompatible pom files in your repository.");
 	}
@@ -161,7 +160,7 @@ public class VersionResolver extends AbstractMojo {
 					//invoking method that checks if target version is in the dependency version range
 					//version.split(",")[0] returns substring before ',' i.e. Min version
 					//version.split(",")[1] returns substring after ',' i.e. Max version
-					this.checkVersionCompatiblity(target, version.split(",")[0], version.split(",")[1]);
+					this.checkVersionCompatiblity(target, version.split(",")[0], version.split(",")[1]);	
 				}
 				
 				//if the target dependency is present in the current pom file
@@ -192,7 +191,7 @@ public class VersionResolver extends AbstractMojo {
 		{
 			getLog().error("DEPENDENCY VERSION MISMATCH. please check version of dependency in "
 				+project.getGroupId()+"."+project.getArtifactId());
-			throw new DependencyVersionMismatchError(getLog(),incompatiblePomFileCount);
+			getLog().error("Mismatched artifact URL: "+project.getModel().getPomFile().getAbsolutePath());
 		}
 	}
 	
@@ -215,7 +214,7 @@ public class VersionResolver extends AbstractMojo {
 		{
 			getLog().error("DEPENDENCY VERSION MISMATCH. please check version of dependency in "
 				+project.getGroupId()+"."+project.getArtifactId());
-			throw new DependencyVersionMismatchError(getLog(), incompatiblePomFileCount);
+			getLog().error("Mismatched artifact URL: "+project.getModel().getPomFile().getAbsolutePath());
 		}
 	}
 }
