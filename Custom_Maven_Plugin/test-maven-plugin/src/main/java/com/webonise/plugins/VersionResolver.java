@@ -152,13 +152,12 @@ public class VersionResolver extends AbstractMojo {
 				String artifact = currentDependency.getArtifactId();
 				String version = currentDependency.getVersion();
 				ComparableVersion target = new ComparableVersion(targetVersion);
-				//if the tarConstructorget dependency is present in the current pom file AND the version is in range
-				if(version!=null && artifact.equals(targetArtifact)&&version.matches("(\\[|\\()(.*)(\\]|\\))"))
+				String versionRangeRegex = "(\\[|\\()(.*)(\\]|\\))";
+				if(version!=null && artifact.equals(targetArtifact) && version.matches(versionRangeRegex))
 				{
+					String[] rangeBounds = version.split(",");
 					//invoking method that checks if target version is in the dependency version range
-					//version.split(",")[0] returns substring before ',' i.e. Min version
-					//version.split(",")[1] returns substring after ',' i.e. Max version
-					this.checkVersionCompatiblity(target, version.split(",")[0], version.split(",")[1]);	
+					this.checkVersionCompatiblity(target, rangeBounds[0], rangeBounds[1]);
 				}
 				
 				//if the target dependency is present in the current pom file
