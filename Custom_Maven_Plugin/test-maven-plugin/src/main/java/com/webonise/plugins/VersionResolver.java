@@ -1,11 +1,6 @@
 package com.webonise.plugins;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.Collection;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
@@ -57,16 +52,7 @@ public class VersionResolver extends AbstractMojo {
 	 */
 	public void execute() throws MojoExecutionException, MojoFailureException {
 				
-		File file = new File("/home/webonise/Desktop/out.log");
-		FileOutputStream fos;
-		try {
-			fos = new FileOutputStream(file);
-			PrintStream ps = new PrintStream(fos);
-			System.setOut(ps);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		
 		/** Model object to represent project from a pom file*/
 		Model model = new Model();
 		
@@ -125,7 +111,6 @@ public class VersionResolver extends AbstractMojo {
 	@SuppressWarnings("finally")
 	Model resetModelObject(File newPomFile,Model model)
 	{
-		
 		/** Object to parse the pom File and return a Model*/
 		MavenXpp3Reader xmlReader = new MavenXpp3Reader();
 		try
@@ -202,9 +187,9 @@ public class VersionResolver extends AbstractMojo {
 		//if the target version is equal to dependency version
 		if(targetVersion.compareTo(dependent)!=0)
 		{
-			getLog().error("DEPENDENCY VERSION MISMATCH. please check version of dependency in "
-				+project.getGroupId()+"."+project.getArtifactId());
-			getLog().error("Mismatched artifact URL: "+project.getModel().getPomFile().getAbsolutePath());
+				getLog().error("DEPENDENCY VERSION MISMATCH. please check version of dependency in "
+						+project.getGroupId()+"."+project.getArtifactId());
+				getLog().error("Mismatched artifact URL: "+project.getModel().getPomFile().getAbsolutePath());
 		}
 	}
 	
@@ -218,16 +203,15 @@ public class VersionResolver extends AbstractMojo {
 	 */
 	void checkVersionCompatiblity(ComparableVersion targetVersion, String dependencyMinVersion,String dependencyMaxVersion)
 	{
-		
 		LimitVersion minBound = new LimitVersion(dependencyMinVersion);
 		LimitVersion maxBound = new LimitVersion(dependencyMaxVersion);
 	
 		//if version is not in range from either minimum side or maximum side
 		if(!(minBound.versionIsLessThan(targetVersion) & maxBound.versionIsMoreThan(targetVersion)))
 		{
-			getLog().error("DEPENDENCY VERSION MISMATCH. please check version of dependency in "
-				+project.getGroupId()+"."+project.getArtifactId());
-			getLog().error("Mismatched artifact URL: "+project.getModel().getPomFile().getAbsolutePath());
+				getLog().error("DEPENDENCY VERSION MISMATCH. please check version of dependency in "
+						+project.getGroupId()+"."+project.getArtifactId());
+				getLog().error("Mismatched artifact URL: "+project.getModel().getPomFile().getAbsolutePath());	
 		}
 	}
 }
