@@ -1,6 +1,5 @@
 package com.webonise.plugins;
 
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -43,8 +42,8 @@ public class VersionResolver extends AbstractMojo {
 	 */
 	private ArtifactRepository localRepository;
 	
-	public static String targetArtifact;
-	public static String targetVersion;
+	private static String targetArtifact;
+	private static String targetVersion;
 	private static int incompatiblePomFileCount=0;
 
 	/**default execute method of AbstractMojo class
@@ -127,7 +126,7 @@ public class VersionResolver extends AbstractMojo {
 		}
 		catch (IOException e)
 		{
-			getLog().error(e.getStackTrace().toString());
+			getLog().error(e);
 			
 		}
 		finally
@@ -173,7 +172,7 @@ public class VersionResolver extends AbstractMojo {
 		}
 		catch (Exception ex)
 		{
-			getLog().error(ex.getStackTrace().toString());
+			getLog().error(ex);
 		}
 	}
 	
