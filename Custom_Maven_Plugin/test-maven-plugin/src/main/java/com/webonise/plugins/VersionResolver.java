@@ -190,9 +190,9 @@ public class VersionResolver extends AbstractMojo {
 		//if the target version is equal to dependency version
 		if(targetVersion.compareTo(dependent)!=0)
 		{
-				getLog().error("DEPENDENCY VERSION MISMATCH. please check version of dependency in "
+				getLog().warn("DEPENDENCY VERSION MISMATCH. please check version of dependency in "
 						+project.getGroupId()+"."+project.getArtifactId());
-				getLog().error("Mismatched artifact URL: "+project.getModel().getPomFile().getAbsolutePath());
+				getLog().warn("Mismatched artifact URL: "+project.getModel().getPomFile().getAbsolutePath());
 		}
 	}
 	
