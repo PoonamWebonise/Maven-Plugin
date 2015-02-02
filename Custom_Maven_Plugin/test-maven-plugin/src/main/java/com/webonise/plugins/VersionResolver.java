@@ -1,19 +1,23 @@
 package com.webonise.plugins;
 
-import java.io.*;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import org.apache.maven.artifact.repository.ArtifactRepository;
 
 /**
  * Goal to resolve version of dependency and the
@@ -85,14 +89,14 @@ public class VersionResolver extends AbstractMojo {
 	 * to the default Log screen
 	 * @param project : MavenProject object whose info is to be printed
 	 */
-	void printProjectInfo(MavenProject project)
+	private void printProjectInfo(MavenProject project)
 	{
 		getLog().info("Printing Current Project's Artifact ID & Version");
 		getLog().info("Project Version: " + project.getVersion().toString());
 		getLog().info("Artifact ID " + project.getArtifactId().toString());
 	}
 	
-	File getRepositoryFile(ArtifactRepository localRepository)
+	private File getRepositoryFile(ArtifactRepository localRepository)
 	{
 		// String localPath=localRepository.getBasedir();
 		getLog().info("LocalRepository Path:" + localRepository.getBasedir());
@@ -124,7 +128,8 @@ public class VersionResolver extends AbstractMojo {
 		}
 		catch (IOException e)
 		{
-			// skipping incompatible .pom files....
+			e.printStackTrace();
+			
 		}
 		finally
 		{
@@ -138,7 +143,7 @@ public class VersionResolver extends AbstractMojo {
 	 * @param model : Model object of the Project
 	 * @throws IOException
 	 */
-	public void resolveDependencyVersion(Model model)
+	private void resolveDependencyVersion(Model model)
 	{
 		try
 		{
@@ -152,7 +157,7 @@ public class VersionResolver extends AbstractMojo {
 				String artifact = currentDependency.getArtifactId();
 				String version = currentDependency.getVersion();
 				ComparableVersion target = new ComparableVersion(targetVersion);
-				String versionRangeRegex = "(\\[|\\()(.*)(\\]|\\))";
+				final String versionRangeRegex = "(\\[|\\()(.*)(\\]|\\))";
 				if(version!=null && artifact.equals(targetArtifact) && version.matches(versionRangeRegex))
 				{
 					String[] rangeBounds = version.split(",");
@@ -180,7 +185,7 @@ public class VersionResolver extends AbstractMojo {
 	 * @param targetVersion : ComparableVersion object of target project
 	 * @param dependencyVersion : String containing version of the dependency 
 	 */
-	void checkVersionCompatiblity(ComparableVersion targetVersion,String dependencyVersion)
+	private void checkVersionCompatiblity(ComparableVersion targetVersion,String dependencyVersion)
 	{
 		ComparableVersion dependent = new ComparableVersion(dependencyVersion);
 		//if the target version is equal to dependency version
@@ -200,7 +205,7 @@ public class VersionResolver extends AbstractMojo {
 	 * @param dependencyMinVersion : String containing minimum version starting by '[' or '(' representing bound inclusive or exclusive
 	 * @param dependencyMaxVersion : String containing maximum version ended by ']' or ')' representing bound inclusive or exclusive
 	 */
-	void checkVersionCompatiblity(ComparableVersion targetVersion, String dependencyMinVersion,String dependencyMaxVersion)
+	private void checkVersionCompatiblity(ComparableVersion targetVersion, String dependencyMinVersion,String dependencyMaxVersion)
 	{
 		LimitVersion minBound = new LimitVersion(dependencyMinVersion);
 		LimitVersion maxBound = new LimitVersion(dependencyMaxVersion);
@@ -208,9 +213,9 @@ public class VersionResolver extends AbstractMojo {
 		//if version is not in range from either minimum side or maximum side
 		if(!(minBound.versionIsLessThan(targetVersion) & maxBound.versionIsMoreThan(targetVersion)))
 		{
-				getLog().error("DEPENDENCY VERSION MISMATCH. please check version of dependency in "
+				getLog().warn("DEPENDENCY VERSION MISMATCH. please check version of dependency in "
 						+project.getGroupId()+"."+project.getArtifactId());
-				getLog().error("Mismatched artifact URL: "+project.getModel().getPomFile().getAbsolutePath());	
+				getLog().warn("Mismatched artifact URL: "+project.getModel().getPomFile().getAbsolutePath());	
 		}
 	}
 }
