@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -113,7 +112,7 @@ public class VersionResolver extends AbstractMojo {
 	 * @param newPomFile : File object of the pom file
 	 */
 	@SuppressWarnings("finally")
-	Model resetModelObject(File newPomFile,Model model)
+	private Model resetModelObject(File newPomFile,Model model)
 	{
 		/** Object to parse the pom File and return a Model*/
 		MavenXpp3Reader xmlReader = new MavenXpp3Reader();
@@ -128,7 +127,7 @@ public class VersionResolver extends AbstractMojo {
 		}
 		catch (IOException e)
 		{
-			e.printStackTrace();
+			getLog().error(e.getStackTrace().toString());
 			
 		}
 		finally
@@ -148,7 +147,8 @@ public class VersionResolver extends AbstractMojo {
 		try
 		{
 			project = new MavenProject(model);
-
+			
+			final String versionRangeRegex = "(\\[|\\()(.*)(\\]|\\))";
 			@SuppressWarnings("unchecked")
 			List<Dependency> dependencies = project.getDependencies();
 			//Iterating all the dependency in the pom file
@@ -157,7 +157,6 @@ public class VersionResolver extends AbstractMojo {
 				String artifact = currentDependency.getArtifactId();
 				String version = currentDependency.getVersion();
 				ComparableVersion target = new ComparableVersion(targetVersion);
-				final String versionRangeRegex = "(\\[|\\()(.*)(\\]|\\))";
 				if(version!=null && artifact.equals(targetArtifact) && version.matches(versionRangeRegex))
 				{
 					String[] rangeBounds = version.split(",");
@@ -174,7 +173,7 @@ public class VersionResolver extends AbstractMojo {
 		}
 		catch (Exception ex)
 		{
-			ex.printStackTrace();
+			getLog().error(ex.getStackTrace().toString());
 		}
 	}
 	
