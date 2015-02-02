@@ -73,12 +73,18 @@ public class VersionResolver extends AbstractMojo {
 		Collection<File> pomFiles = FileUtils.listFiles(repository, new String[]{"pom"}, true);
 		for (File currentFile : pomFiles)
 		{
-				//setting the Model object for the current pom file
-				model = this.resetModelObject(currentFile,model);
-
-				//method invocation to resolve the version of dependency in the pom
+			// setting the Model object for the current pom file
+			model = this.resetModelObject(currentFile, model);
+			try
+			{
+				// method invocation to resolve the version of dependency in the pom
 				this.resolveDependencyVersion(model);
 				model.getProjectDirectory().getAbsoluteFile();
+			}
+			catch (NullPointerException e)
+			{
+				getLog().info("skipping null model object");
+			}
 		}
 		getLog().info("skipped "+incompatiblePomFileCount + " incompatible pom files in your repository.");
 	}
