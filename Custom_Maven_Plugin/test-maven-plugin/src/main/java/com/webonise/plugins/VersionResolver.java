@@ -54,7 +54,6 @@ public class VersionResolver extends AbstractMojo {
 	 */
 	public void execute() throws MojoExecutionException, MojoFailureException {
 				
-		
 		/** Model object to represent project from a pom file*/
 		Model model = new Model();
 		
@@ -133,7 +132,6 @@ public class VersionResolver extends AbstractMojo {
 		catch (IOException e)
 		{
 			getLog().error(e);
-			
 		}
 		finally
 		{
@@ -217,9 +215,9 @@ public class VersionResolver extends AbstractMojo {
 		//if version is not in range from either minimum side or maximum side
 		if(!(minBound.versionIsLessThan(targetVersion) & maxBound.versionIsMoreThan(targetVersion)))
 		{
-				getLog().warn("DEPENDENCY VERSION MISMATCH. please check version of dependency in "
-						+project.getGroupId()+"."+project.getArtifactId());
-				getLog().warn("Mismatched artifact URL: "+project.getModel().getPomFile().getAbsolutePath());	
+			getLog().warn("DEPENDENCY VERSION MISMATCH. please check version of dependency in "
+					+project.getGroupId()+"."+project.getArtifactId());
+			getLog().warn("Mismatched artifact URL: "+project.getModel().getPomFile().getAbsolutePath());	
 		}
 	}
 }
